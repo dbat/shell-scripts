@@ -13,7 +13,7 @@ goto START
 :: Copyright 2003-2011 Adrian H., Ray AF and Raisa NF
 :: Private property of PT SOFTINDO Jakarta
 ::
-:: https://github.com/dbat/scripts
+:: https://github.com/dbat/shell-scripts
 @echo. Create links of files/dirs in the specified dir DESTDIR
 @echo.
 @echo. Usage: %this% destdir [ -h ] [ -j ] [ -r ] filename...
