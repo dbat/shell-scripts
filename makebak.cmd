@@ -153,7 +153,8 @@ goto chkUpdate
 :chkUpdate
 ::rem for %%f in (*.pas *.dfm *.dpr) do ()
 ::for %%f in (%~dpnx0 %SOURCES%) do (
-for %%f in ("%this%" %SOURCES%) do (
+::for %%f in ("%this%" %SOURCES%) do (
+for %%f in (%SOURCES%) do (
   call %cmb% "%%~f" "%backupdir%\%pre%\%%~nxf"
   if not errorlevel 0 echo. %%~nxf changed & set /a "updated=!updated!+1"
 )
@@ -171,7 +172,8 @@ set "got=%backupdir%\%got%"
 if not defined echo echo. Backup dir: %got%
 
 ::for %%f in (%~dpnx0 %SOURCES%) do (
-for %%f in ("%this%" %SOURCES%) do (
+::for %%f in ("%this%" %SOURCES%) do (
+for %%f in (%SOURCES%) do (
   rem if not defined echo <nul set/p="%%f "
   if not defined echo echo. copying %%f
   %echo% copy /y "%%~f" "%got%" %gtrnul%
