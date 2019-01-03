@@ -1,0 +1,45 @@
+#idiot GNU does not recognize these (apparently) keys
+# HOME	\e[1~
+# INS	\e[2~
+# END	\e[3~
+# DEL	\e[4~
+#...also...
+# UP	\e[A
+# DOWN	\e[B
+# RIGHT	\e[C
+# LEFT	\e[D
+
+#apparently do not work on freebsd
+#"\e[3~": delete-char
+
+#use this instead
+: delete-char
+
+set blink-matching-paren off
+set byte-oriented on
+set completion-ignore-case on
+set convert-meta on
+set disable-completion off
+set enable-keypad on
+set expand-tilde on
+#set history-preserve-point off
+#set horizontal-scroll-mode off
+set input-meta on
+set mark-directories on
+#set mark-modified-lines off
+set mark-symlinked-directories on
+set match-hidden-files on
+set meta-flag on
+set output-meta on
+set page-completions on
+set prefer-visible-bell on
+set print-completions-horizontally on
+set show-all-if-ambiguous on
+#set show-all-if-unmodified off
+set visible-stats on
+set bell-style none
+set comment-begin #
+set completion-query-items 4000
+set editing-mode emacs
+set keymap emacs-meta
+
