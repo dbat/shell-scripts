@@ -1,0 +1,47 @@
+bytes_per_sector=512;	# pretty standard
+track_heads=255;	# 16 for BSD or some ancient stuff
+sectors_per_track=63;	# 9 for DD floppy
+cylinder_sectors=track_heads * sectors_per_track
+
+# disk parameters:
+#   c = sectors of cylinder heads
+c=(sectors_per_track * track_heads); # (63 * 255 = 16065)
+
+# sectors conversion:
+#   d = cylinders to MB
+#   e = sectors to MB
+
+scale=7; k=(c/2); d=(c/2048); m=(c/2048); #m=(512/1024/1024);
+g=(c/2048/1024);
+
+define cs(cylinders) { # get how many sectors for any given cylinders
+  return(cylinder_sectors * cylinders - 63); }
+
+define cb(cylinders) {
+ return(cs(cylinders) * bytes_per_sector); }
+
+define ck(cylinders) {
+ return(cb(cylinders) / 1024^1); };
+define cm(cylinders) {
+ return(cb(cylinders) / 1024^2); };
+define cg(cylinders) {
+ return(cb(cylinders) / 1024^3); };
+define ct(cylinders) {
+ return(cb(cylinders) / 1024^4); };
+define cp(cylinders) {
+ return(cb(cylinders) / 1024^5); };
+define ce(cylinders) {
+ return(cb(cylinders) / 1024^6); };
+
+# old bc didn't understand single-letter cap variables
+# K=1000
+# M=1000^2
+# G=1000^3
+# T=1000^4
+k=1024
+m=1024^2
+g=1024^3
+t=1024^t
+
+scale=1
+
