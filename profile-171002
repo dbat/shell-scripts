@@ -1,0 +1,2949 @@
+#!/bin/sh
+# version: 17.08.01.0021
+
+# start line: 128
+alias vip='${EDITOR:-vi} /etc/profile'
+alias soupx='DONE_INIT= . /etc/profile; set +x'
+alias soup='set +x; soupx >/dev/null 2>&1 || echo "error! LINE:$LINENO"'
+alias souo=soup
+alias vipx="vip && soup"
+[ "$DONE_INIT" ] && return || echo "+++ $0: [$1] $*"
+
+# This profile once portable on freebsd-6, netbsd, openbsd and solaris
+# (I think it passed/tested also in suse and slackware, even cygwin)
+# Many are relics from freebsd 4 (or maybe 3+ ?)
+# Some of the function are already obsolete (like /dev/ things)
+# or has an official and might be better equivalence (like rc.d/services)
+# they are left for my personal exercise and reminder
+
+# Note: sh functions may not be exported, use bash instead
+set -o emacs	# this one is *really* help
+
+if test "`uname`" = "NetBSD"; then
+  # this will break OpenBSD's sh
+  set -o tabcomplete >/dev/null 2>&1	# netbsd
+fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# MM_CHARSET=KOI8-R; export MM_CHARSET
+# LC_ALL=ru_RU.KOI8-R; export LC_ALL
+# Uncomment next three lines to activate Italian locale
+# LANG=it_IT.ISO_8859-1; export LANG
+# LC_ALL=it_IT.ISO_8859-1; export LC_ALL
+# For full locales list check /usr/share/locale/*
+# You should also read the setlocale(3) man page for information
+# on how to achieve more precise control of locale settings.
+# Read system messages
+# msgs -f
+# Allow terminal messages
+#export LC_ALL=C LC_COLLATE=C LANG=en_US.UTF-8 MM_CHARSET=$LANG
+
+#[ -z "${0%%-*sh}" -a -x /usr/games/fortune ] && /usr/games/fortune -o
+[ "$PAGER" = "less" ] || readonly PAGER=less
+[ "${HOME:=/root}" = "/" ] && HOME=/root
+export PAGER HOME
+export TERM=${TERM:-cons50}
+export readonly TAB="	" CR="
+"
+export ule=/usr/local/etc
+export uler=/usr/local/etc/rc.d
+export erd=/etc/rc.d
+export ulb=/usr/local/bin
+export ulsb=/usr/local/sbin
+export ulsh=/usr/local/share
+
+#VI=vim; which -s vim || VI=vi
+test -n "$EDITOR" || EDITOR=vi
+export EDITOR LESS="-ginsSX" ENV=/etc/profile BLOCKSIZE=K
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/sbin:/usr/local/bin:~/bin
+
+# export WRKDIRPREFIX="/dist/.ports_workdir"
+# export PKGREPOSITORY="/dist/.ports_packages"
+export PORTSDIR="${PORTSDIR:-/usr/ports}"
+export WRKDIRPREFIX="/usr/ports/workdir"
+export PKGREPOSITORY="/usr/ports/packages"
+export CCACHE_DIR=/tmp/cache
+
+if [ -n "$SSH_CONNECTION" ]; then
+  # set xterm-title
+  SSH_CONNECTIONC="`echo $SSH_CONNECTION | tr ' ' :`"
+  case $TERM in xterm*|rxvt*) printf "\033]0;$USER@${SSH_CONNECTIONC#*:*:} from ${SSH_CONNECTIONC%:*:*}\007";; esac
+fi
+
+alias nodp="NOCLEANDEPENDS=yes"
+alias nock="NO_CHECKSUM=yes"
+alias nodpck="NOCLEANDPENDS=yes NO_CHECKSUM=yes"
+
+#bashes
+export INPUTRC=/etc/inputrc HISTCONTROL=ignoreboth:erasedups
+
+#stupid solaris :(
+[ "$UID" ] || { UID="`id -u 2>/dev/null || echo "0"`"; }
+[ "$GID" ] || { GID="`id -g 2>/dev/null || echo "0"`"; }
+
+test "$UID" -lt "1000" -o "$GID" -lt "1000" || { DONE_INTI=1; return; }
+[ "$UID" -eq 0  -o "$GID" -eq 0 ] && [ "$EDITOR" != "vi" ] && readonly export EDITOR=vi
+[ "$UID" -eq 999 ] && SUDO=sudo || SUDO=
+
+[ "$PS1" = "# " -o "$PS1" = "$ " ] || {
+  [ "$UID" -eq 0 ] && PS1="#" || PS1="$"
+  readonly PS1="$PS1 "
+  export PS1
+}
+
+# read a
+#export CFLAGS="-g0 -O2 -pipe -mtune=pentium3" NOCLEANDEPENDS=1
+
+## IMPORTANT!
+## there's no such thing as short-circuit optimizer of test condition
+## (as the matter of fact, except for educational purpose, no one should
+## ever used a full-circuit evaluation mechanism. its' existence in a
+## practical application highly suspected as a lack of experience,
+## or skill, or -usually- both)
+## try this:
+##   test -z "you've been fucked" -a -n "`rm -vRf /`" && echo they lie
+## (the "rm -Rf" should NEVER be executed in short-circuit)
+## (it shows none that they've been lying, but you've already fucked up)
+
+if test "`uname`" != "NetBSD"; then
+  # fix idiot bsd (emacs?) wicked key-bind of DEL and BACKSPACE
+  # DEL should meant exactly as it sounds: DELETE, without no more
+  # creative smart-ass interpretation making it BACKWARD delete. sigh..
+  # BACKSPACE means BACK (again: BACK!, you hear me? BACK!!!). idiot :((
+  #
+  ([ "$0" = "-sh" ] || [ "$0" = "sh" ]) && { bind  em-delete-or-list; }
+
+  #another-stupid-unrecognized
+  ([ "$0" = "-sh" ] || [ "$0" = "sh" ]) && { bind [H ed-move-to-beg; bind [F ed-move-to-end; }
+
+  # NOT WORK
+  # test "$TERM" = "xterm-color" && {
+  #   bind [4~ ed-move-to-end
+  #   bind [1~ ed-move-to-beg
+  # }
+fi
+
+#TERMPATH=~/.termcap:/etc/termcap
+#fallback only! always use the full-blown termcap database whenever possible
+[ -s /etc/termcap -o -s /$HOME/.termcap ] || { \
+  TERMCAP="cons25|$TERM|ansis|ansi80x25"':ac=l\332m\300k\277j\331u\264t\303v\301w\302q\304x\263n\305`^Da\260f\370g\361~\371.^Y-^Xh\261i^U0\333y\363z\362:am:bs:NP:ms:pt:AX:eo:bw:ut:km:co#80:li#25:pa#64:Co#8:it#8:al=\E[L:cd=\E[J:ce=\E[K:cl=\E[H\E[J:cm=\E[%i%d;%dH:dc=\E[P:dl=\E[M:do=\E[B:bt=\E[Z:ho=\E[H:ic=\E[@:cb=\E[1K:nd=\E[C:rs=\Ec:so=\E[7m:se=\E[27m:up=\E[A:cr=^M:ta=^I:AF=\E[3%dm:AB=\E[4%dm:op=\E[39;49m:sc=\E7:rc=\E8:k1=\E[M:k2=\E[N:k3=\E[O:k4=\E[P:k5=\E[Q:k6=\E[R:k7=\E[S:k8=\E[T:k9=\E[U:k;=\E[V:F1=\E[W:F2=\E[X:K2=\E[E:nw=\E[E:ec=\E[%dX:kb=^H:kh=\E[H:ku=\E[A:kd=\E[B:kl=\E[D:kr=\E[C:le=^H:sf=\E[S:sr=\E[T:kN=\E[G:kP=\E[I:@7=\E[F:kI=\E[L:kD=\177:kB=\E[Z:IC=\E[%d@:DC=\E[%dP:SF=\E[%dS:SR=\E[%dT:AL=\E[%dL:DL=\E[%dM:DO=\E[%dB:LE=\E[%dD:RI=\E[%dC:UP=\E[%dA:cv=\E[%i%dd:ch=\E[%i%d`:mb=\E[5m:md=\E[1m:mr=\E[7m:me=\E[m:bl=^G:ve=\E[=S:vi=\E[=1S:vs=\E[=2S:'
+  export TERMCAP
+}
+
+# this shit requires /usr/bin/mesg to be suid root
+# mesg n
+
+#keep stupid SuSE happy
+#LANG=en_US; export LANG
+#LC_ALL=C; export LC_ALL
+#LC_COLLATE=C; export LC_COLLATE
+
+printerr() { echo error $*; exit 1; }
+whichl() { set -- `which -a $*`; test "$1" && ls -lo $*; }
+mkcd() { test -d "$1" || mkdir -p "$1"; cd "$1"; }
+
+#aliases
+alias t=type
+alias q=quit
+alias x=exit
+alias hcx="h -c; x"
+
+alias sleep3='sleep 3'
+alias sss='sleep 3'
+alias h=history
+alias hc="h -c"
+alias hcl="h -c; cls"
+alias hcls="h -c; clss; cls"
+alias hclx="h -c; clss; cls; x"
+
+alias shutdwon="$SUDO shutdown"
+alias shutup="$SUDO shutdown now"
+
+alias splitopt='sed s/ -/-/g'
+
+alias init0="init 0"
+alias initx0="init0x"
+
+svc() {
+  op="$1"; shift;
+  for svc; do service "$svc" "$op"; done;
+}
+
+alias raisa_shutdown="(stop_all; stop sys; init0x;)&x"
+
+alias init0x="(sss; init0) & x"
+alias initlx="(sss; init0) & hclx"
+alias shutlx="(sss; shutup) & hclx"
+
+alias rblx="(sss; reboot) & hclx"
+alias rebootx=rblx
+
+alias l="ls -lTAfFo"
+alias l="ls -lAfFo" # only FreeBSD understand T
+alias l="ls -lAFo" # cygwin doesn't even know f
+alias la="l -a"
+alias li="l -i"
+alias lo="l -o"
+alias lld="l -d"
+alias lsd="ls -d"
+alias dir="l -Gauo"
+# ls -f means unsorted, do not use since it cannot be reverted back
+
+alias zpl="zpool list"
+alias zfl="zfs list -r"
+alias zal="zfs get all"
+alias zl="zfl"
+alias zm="zfs get mountpoint"
+#alias zpi="zpool import"
+zpi(){
+  local opts arg
+  unset opts
+  for arg; do
+    [ -n "${arg##-*}" ] && break
+    opts="$opts $arg"
+    shift
+  done
+  [ -z "$1" ] && set -- "";
+  for arg; do zpool import $opts $arg; done
+}
+alias zpx="zpool export"
+alias zpxx='(list=`zpool list -H | cut -f1`; [ "$list" ] && { echo $list; zpx $list; } || echo "no available pools"; )'
+
+# DOS
+alias del=rm
+alias rd=rmdir
+alias copy=cp
+
+alias lrl="l -Ri | less"
+alias lsdir="ls -lF | grep \/$"
+alias lsfile="ls -lF | grep \*$"
+
+alias topd="top -d1"
+alias toples="top | less -F"
+
+alias lns="ln -s"
+
+mpret1="pretty-print-build-depends-list"
+mpret2="pretty-print-run-depends-list"
+mpret="$mpret1"
+
+alias getsq='sed "s/^.*\"\(.*\)\".*$/\1/"'
+alias mpret1_='for s in `mpret1 | getsq`; do echo $s; done'
+alias mpret2_='for s in `mpret2 | getsq`; do echo $s; done'
+alias mpret-=mpret1-
+
+mkdl1="run-depends-list"
+mkdl2="build-depends-list"
+mkdl3="all-depends-list"
+mkdl="$mkdl3"
+
+mkfr="fetch-recursive"
+mkfrl="fetch-recursive-list"
+#mkfl="fetch-list"
+mkfl="$mkfrl"
+
+mkcfg=config
+mkcfgr=config-recursive
+mkrmc=rmconfig
+mkrmcr=rmconfig-recursive
+mksc=showconfig
+mkscr=showconfig-recursive
+
+mkpak="-s package"
+mkpakr="-s package-recursive"
+
+mkins=install
+mkrins=reinstall
+mkdel=deinstall
+mkuns=deinstall
+
+mkcl="-DNOCLEANDEPENDS=yes -s clean"
+mkclpak="-DNOCLEANDEPENDS=yes -s clean package"
+mkclpakr="-DNOCLEANDEPENDS=yes -s clean package-recursive"
+
+alias pkd="test -r pkg-descr && (echo; cat pkg-descr;)"
+
+_isvalidportdir() { #set -x
+  local dpkg PORTSDIR="${PORTSDIR:-/usr/ports}"
+  test -n "$1" && dpkg="$1" || return 1
+  test -d "$dpkg" || return 2
+  test -r "$dpkg/Makefile" || return 3
+  grep -q "^ *SUBDIR *+=" "$dpkg/Makefile" && return 4
+  dpkg="`realpath "$dpkg"`"
+  test -z "${dpkg##$PORTSDIR/*}" || return 4
+  pkn="`basename "$dpkg"`"
+  test -z "${pkn##[0-9a-z]*}" || return 4
+  pkd="`dirname "$dpkg"`"
+  pkd="`basename "$pkd"`"
+  test -z "${pkd##[0-9a-z]*}" || return 5
+  return 0
+}
+
+cdpak(){ #set -x
+  # cd to portdir based on portname or category/portname
+  local PORTSDIR="${PORTSDIR:-/usr/ports}"
+  set -- "${1#$PORTSDIR/}"
+  local pkgr dpkg
+  test -n "$1" -a -z "${1##[0-9a-z]*}" && pkgr="${1%/}" || \
+    { echo Invalid: $1; return; }
+  test -n "${pkgr##*/*}" && pkgr="*/$pkgr"
+  for dpkg in `echo "$PORTSDIR"/$pkgr`; do
+    if _isvalidportdir "$dpkg"; then
+      cd "$dpkg";
+      pwd;
+      break;
+    else echo "Invalid port dir: $dpkg"
+    fi
+  done
+}
+alias cdpk=cdpak
+
+show_vars() {
+  # print variable's value
+  # option -k, to show in format: var="value"
+  local arg
+  if test "$1" = "-k"; then
+    shift
+    for arg; do
+      # eval "echo $arg=\"\$$arg\""
+      eval "cmd=\$$arg"
+      echo "$arg=\"$cmd\""
+    done
+  else
+    for arg; do
+      eval "echo \$$arg"
+    done
+  fi 
+}
+
+exec_vars() {
+  # execute variables
+  local arg
+  for arg; { eval "\$$arg"; }
+}
+
+mkexecs_envars() {
+  # make packages show/execs
+  local once opts arg
+  if test "$1" = "-once"; then
+    shift
+    local once=1
+  else unset once
+  fi
+  unset opts
+  for arg; do
+    if test -z "${arg%%-*}"; then
+      opts="$opts $arg";
+      shift;
+    else break
+    fi
+  done
+  if test -z "$1"; then
+    echo Make packages with make_targets supplied as/in environment variables
+    echo
+    echo Usage: $FUNCNAME [ -once ] [ -opts.. ] [ target_envars.. ]
+    echo
+    echo "-once: exec only the first target_envar, ignore the rest"
+    echo "-opts: any arguments for make, such as: -j4 -DDEFINE_SOMETHING"
+    echo
+    echo Note: Should be run under a valid port directory, obviously.
+    return
+  fi
+  local cmd dir
+  if test "$ALLOW_ROOT" != 1; then
+    if test "`id -u`" = "0"; then
+      echo "Should not be run by root. set ALLOW_ROOT=1 to force";
+      return;
+    fi
+  fi
+  for arg; do
+    dir="${PWD##*/}"
+    eval "cmd=\$$arg"
+    echo -n "$cmd"
+    if _isvalidportdir "$PWD"; then
+      echo " port: $dir";
+      make $opts $cmd
+    else echo " - ERROR - Invalid dir: $dir"
+    fi
+    test "$once" && break
+  done
+}
+
+mkportas() { #set -x
+  local PORTSDIR="${PORTSDIR:-/usr/ports}"
+  test "$2" && cmd="$1" || {
+    echo "  Execute \"command\" under respective ports directory"
+    echo
+    echo "  Usage: $FUNCNAME [ command ] [ ports... ]"
+    echo
+    echo "         ports could be [ portname ] or [ category/portname ]"
+    echo "         globs such as: php71-* is allowed, so be careful with it"
+    #echo "  See also: function mkexecs_envars"
+    return
+  }
+  if test "$ALLOW_ROOT" != 1; then
+    if test "`id -u`" = "0"; then
+      echo "Should not be run by root. set ALLOW_ROOT=1 to force";
+      return;
+    fi
+  fi
+  shift
+  local pkg pkgr
+  # test -z "$1" && set -- .
+  for pkg; do
+    #pkg="${pkg##*/}"
+    pkgr="${pkg#$PORTSDIR/}"
+    test -n "${pkgr##*/*}" && pkgr="*/$pkgr"
+    for dpkg in `echo "$PORTSDIR"/$pkgr`; do
+      echo -n "${dpkg#$PORTSDIR/}: "
+      PORTSDIR="$PORTSDIR" _isvalidportdir "$dpkg" && \
+        (cd "$dpkg"; eval $cmd;) || \
+          echo "Invalid: $?"
+      echo
+    done
+  done
+}
+
+## # make aliases with -j4
+##NO! -j4 often baaad!
+## # for name in \
+## #   mkpak mkpakr \
+## #   ; do
+## #   alias $name="mkexecs_envars -once -j4 $name"
+## # done
+
+# make aliases (do not do -j4, do not run by root)
+for name in \
+  mkpak mkpakr \
+  mkcl mkclpak mkclpakr \
+  ; do
+  alias $name="mkexecs_envars -once $name"
+  alias "${name}-"="mkportas $name"
+done; unset name;
+
+alias mkpk=mkpak; alias "mkpk-"="mkpak-"
+
+# make aliases. OK to be run by root
+for name in \
+  mpret mpret1 mpret2\
+  mkdl mkdl1 mkdl2 mkdl3 \
+  mkfr mkfl mkfrl \
+  mpret mkdl mkfl \
+  mkins mkrins mkdel mkuns \
+  mkcfg mkcfgr mkrmc mkrmcr mksc mkscr \
+  ; do
+  alias $name="ALLOW_ROOT=1 mkexecs_envars -once $name"
+  alias "${name}-"="ALLOW_ROOT=1 mkportas $name"
+done; unset name;
+
+# export WRKDIRPREFIX="/usr/ports/workdir"
+alias lspkg="ls $WRKDIRPREFIX/usr/ports/*/*/work/pkg/*"
+
+dodol() {
+#  if test -z "$1"; then
+    local VALIDARG1="mpret mpret1 mpret2" \
+      VALIDARG2="mkdl mkdl1 mkdl2 mkdl3" \
+      VALIDARG3="mkfr mkfl mkfrl mkpak mkpakr" \
+      VALIDARG4="mkcfg mkcfgr mkrmc mkrmcr mksc mkscr" \
+      VALIDARG5="mkcl mkclpak mkclpakr" \
+      VALIDARG6="mkins mkdel mkrins" \
+      VALIDARG9="clean cln package pkg" \
+
+    echo "/"
+    echo "| Port package command processor against multiple, selective subdirs\n|"
+    echo "| Usage:"
+    echo "|   $FUNCNAME command [subdir...]"
+    echo "|"
+    echo "| Valid command:"
+    echo "|   $VALIDARG1"
+    echo "|   $VALIDARG2"
+    echo "|   $VALIDARG3"
+    echo "|   $VALIDARG4"
+    echo "|   $VALIDARG5"
+    echo "|   $VALIDARG6"
+    echo "|   $VALIDARG9"
+    echo "|"
+    echo "| Target command:"
+
+    for a in $VALIDARG1 "" $VALIDARG2 "" $VALIDARG3 "" \
+      $VALIDARG4 "" $VALIDARG5 "" $VALIDARG6; do
+      # echo "|   `type $a 2>&1`";
+      echo "|   `show_vars -k $a 2>&1`";
+    done
+
+    echo "|"
+    echo "Set PAUSE_ON_ERROR=1 to suspend processing when encounter an error"
+    echo "Set CLEAN_ON_ERROR=1 to clean package and try to recompile once more"
+    echo ""
+    echo "NOTE: This macro is deprecated. You can now simply add \"-\" (DASH)"
+    echo "      to the respective command to achieve the same result"
+    return
+#  fi
+  local SILENT=-s NOCLEANDEPENDS=yes cmd="$1";
+  case "$1" in
+    # nodp) cmd="NOCLEANDEPENDS=yes";;
+    pkg) cmd=mkpak;;
+    config|cfg) cmd=mkcfg;;
+    clean|cln) cmd=mkcl;;
+  esac
+
+  case "$1" in pkg|mkpak*);; *)DONT_CHECK_ROOT=1;; esac
+
+  cmd="`show_vars $cmd`"
+
+  test -n "$cmd" && shift || cmd="all-depends-list"
+
+  if test "$DONT_CHECK_ROOT" != 1; then
+    if test "`id -u`" = "0"; then
+      echo "Should not be run by root. set DONT_CHECK_ROOT=1 to force";
+      return;
+    fi
+  fi
+
+  local a arg
+  for arg; do
+  test -d "$arg" || continue
+    (
+    trap return
+    cd $arg
+    echo; echo "--- packaging [[ $arg ]] : $cmd"
+    make $SILENT $cmd
+    ) || {
+	ret="$?"
+	if test "$ret" = "1" -o "$ret" = "2"; then
+	  test "$PAUSE_ON_ERROR" = "1" && {
+	    echo "\n*** Error while processing \"$PWD/$arg\""
+	    echo "*** Activated: PAUSED ON ERROR. Press [ENTER} key to continue..";
+	    echo "(Type 'g' or 'G' to continue the rest without anymore pausing)";
+	    read a; case $a in g|G) PAUSE_ON_ERROR=;; esac
+	  }
+	  test "$CLEAN_ON_ERROR" = "1" && (
+	    echo; echo "*** CLEAN_ON_ERROR activated ***\nClean and recompile [[ $arg ]] : $cmd\n"
+	    cd $arg; make clean
+  	    trap return
+	    make $SILENT $cmd
+	  ) || { test "$?" -gt "2" && break; }
+	else
+ 	  { echo " [return code: $ret]"; break; }
+	fi
+    }
+  done;
+}
+
+alias susu="$SUDO su"
+alias sul="su -l"
+alias sula="su -l AA"
+alias sulap="su -l pgsql"
+
+# can NOT do alias here..
+suda() { if [ "$1" ]; then su AA -c "$*"; else su AA; fi }
+
+alias vipa='suda ${EDITOR:-vi} /etc/profile'
+alias vipwr='suda "mount -uw /; ${EDITOR:-vi} /etc/profile; mount -ur /"'
+alias vimk='suda ${EDITOR:-vi} /etc/make.conf'
+alias vimap='suda ${EDITOR:-vi} /etc/libmap.conf'
+
+alias pka='pkg_add'
+
+alias pki='pkg info'
+alias pkgf="pkg fetch"
+alias pkgs="pkg search"
+alias pkgg="pkg search -g"
+
+alias pkga='suda pkg add'
+alias pkgdel='suda pkg del'
+alias pkgi='suda pkg ins'
+
+pkg_Add() { su AA -c "pkg_add $*"; }
+pkg_Del() { su AA -c "pkg_delete $*"; }
+pkgAdd() { su AA -c "pkg add $*"; }
+pkgDel() { su AA -c "pkg delete $*"; }
+getdep() { for f; do test -s "$f" && { echo "$f:"; tar -Oxf "$f" \+CONTENTS |  sed -n "/^@...dep./s///p"; echo; }; done; }
+
+pkdp() {
+  ck1() {
+    test -f "$1" && Z="" || return
+    test -z "${1%%*.tbz}" && Z=j
+    # test -z "${1%%*.txz}" && Z=J
+    test -z "${1%%*.tgz}" && Z=z
+    test -n "$Z" || return
+    echo
+    echo "${1##*/} depend on:" 
+    tar -O -xp${Z}f "$1" "+CONTENTS" | grep "^@pkgdep" || echo "none"
+  }
+  for f; { ck1 "$f"; }
+}
+
+ceki() {
+  crap="$1"; shift;
+  test "$1" || echo "usage: $FUNCNAME [ libshit ] tarballs.. (any of .tgz .tbz or .txz)"
+  for arg; do
+    test -f "$arg" -a -r "$arg" || continue
+    case "$arg" in
+       *.txz) findcrap="shlibs_required.*$crap"; MANIFEST="COMPACT_MANIFEST";;
+       *.tbz|*.tgz) findcrap="^@pkgdep.*$crap"; MANIFEST="CONTENTS";;
+       *) continue;;
+        esac
+       tar -O -xpf "$arg" "\+$MANIFEST" | grep -im 1 "$findcrap" >/dev/null 2>&1 && echo "YES $arg needs $crap" || echo " - $arg"
+  done
+}
+
+alias cekli="ceki libiconv"
+
+pkgng_ldep() {
+  test -n "$1" || echo "get list dependencies of pkgng txz tarball"
+  for arg; do
+    echo;
+    echo "${arg%.txz} dependencies:";
+    tar -O -xpf "${arg%.txz}.txz" "\+COMPACT_MANIFEST" 2>/dev/null | grep -o ".shlibs_[rp].[^]]\+]" | tr -d \" | tr ][ " ";
+  done
+}
+
+#ino() { local i=; test -f "$1" && i=`ls -i "$1"`; test "$i" -gt 0; echo ${i%% *}; }
+#ino() { test -f "$1" && expr "`ls -i "$1"`" : "\(.*\) .*"; }
+ino() { test -f "$1" && stat -f "%i" "$1"; }
+cmpln() {
+  local verbose=1
+  test "$3" = "-s" && verbose=
+  test "$1" = "-s" && { shift; verbose=; }
+  showmsg() { test "$verbose" = "1" && echo "$*"; }
+  test -n "$1" || { showmsg "missing arguments"; return; }
+  test -n "$2" || { showmsg "missing second argument"; return; }
+  test "$1" != "$2" || { showmsg "identical arguments"; return; }
+  test -f "$1" || { showmsg "invalid file: $1"; return; }
+  test -f "$2" || { showmsg "invalid file: $2"; return; }
+  test -w "$2" || { showmsg "non-writable file: $2"; return; }
+  local i1=`ino $1`; test -n "$i1" || { showmsg "invalid file: $1"; return; }
+  local i2=`ino $2`; test -n "$i2" || { showmsg "invalid file: $2"; return; }
+  test "$i1" != "$i2" || { showmsg "skipping: identical file (already hardlinked)"; return; }
+  cmp -sz "$1" "$2" || { showmsg "skipping: file different"; return; }
+  ln -f "$1" "$2" && showmsg "linking $1 to $2"
+}
+
+cmplnd() {
+  local verbose=1
+  test "$3" = "-s" && verbose=
+  test "$1" = "-s" && { shift; verbose=; }
+  showmsg() { test "$verbose" = "1" && echo "$*"; }
+  test -n "$1" || { showmsg "missing arguments"; return; }
+  test -n "$2" || { showmsg "missing second argument"; return; }
+  test "$1" != "$2" || { showmsg "identical arguments"; return; }
+  test -d "$1" || { showmsg "invalid directory: $1"; return; }
+  test -d "$2" || { showmsg "invalid directory: $2"; return; }
+  test -w "$2" || { showmsg "non-writable file: $2"; return; }
+  for f in "$1"/*; { test -f "$f" && cmpln "$f" "$2/${f##*/}"; }
+}
+
+alias kls="kldstat -v 2>&1 |less"
+
+alias bc="bc -q `[ -f /etc/bc.rc ] && echo /etc/bc.rc`"
+alias md=mkdir
+alias rmxxx="rm -R .[!.]* *"
+# alias cls='tput -T $TERM clear'
+# alias clss="tput -T \$TERM clear; tty | grep tty > /dev/null 2>&1 && vidcontrol -C || printf '\033[3J' #clear scrollback under putty"
+alias cls="printf '\033[2J\033[;H'"
+alias clss="printf '\033[2J\033[;H\033[3J'"
+# alias clss="tput -T \$TERM clear; tty | grep tty > /dev/null 2>&1 && vidcontrol -C || printf '\033[3J' #clear scrollback under putty"
+alias cls0="for ((i=1;i<50;i++)); { echo > /dev/ttyv0; }"
+alias ep='$EDITOR ~/.profile'
+alias setl="set|less"
+alias dml="$SUDO dmesg -a|less"
+alias una='echo -e `uname -rsm` "-" `sysctl -b hw.model`'
+alias ff="fstat -f"
+
+zless() { test $1 && { zcat $* | less; } }
+
+alias rw=rwstatus
+alias rw.="rwstatus ."
+rwstatus() {
+  for f in $*; do s="not exist"
+    [ -e "$1" ] && { test -w "$f" && s=writeable || s=readonly; }
+    echo "$f	is $s"
+  done
+}
+
+#alias cd/="cd /"
+alias cd-="cd -"
+alias cd..="cd .."
+alias cd...="cd ../.."
+
+alias cdB="cd /bin"
+alias cd2="cd ../.."
+alias cd3="cd ../../.."
+alias cd4="cd ../../../.."
+alias cd5="cd ../../../../.."
+
+FBA=ftp.freebsd.org/pub/FreeBSD/ports/packages/All
+
+alias ping="ping -vc3"
+alias pingg="ping -vc3 www.google.com"
+alias ftpfb='ftp -a ftp.freebsd.org'
+alias ftpdk='ftp -a ftp.beastie.tdk.net' # 87.51.34.132
+
+#alias ftpb='ftp -a ftp.id.freebsd.org' # 202.158.56.242 freebsd-ftp.cbn.net.id
+#alias ftpb='ftp -a 167.205.22.102'
+
+ftpb() {
+  #local-SHIT FTPB=${FTPB:-"ftp://ftp.itb.ac.id/pub/FreeBSD/"}
+  #local FTPB=${FTPB:-"ftp://ftp3.au.freebsd.org/pub/FreeBSD/"}
+  #local FTPB=${FTPB:-"ftp://ftp.au.freebsd.org/pub/FreeBSD/"}	#mirror.aarnet.edu.au
+  local FTPB=${FTPB:-"ftp://ftp2.au.freebsd.org/pub/FreeBSD/"}	#freebsdmirror.optusnet.com.au
+  local FTPB=${FTPB:-"ftp://ftp.freebsd.org/pub/FreeBSD/"}
+  if test -z "$1"; then pack=
+  else
+    pack="ports/i386/packages"
+    case "$1" in [4-9]|[4-9].[0-5])pack="$pack-$1";; a) pack="$pack/All";; esac
+    case "$2" in r) pack="$pack-release";; s) pack="$pack-stable";; a) pack="$pack/All";; esac
+    case "$3" in a) pack="$pack/All";; esac
+    pack=$pack/
+  fi
+  $echo ftp -a $FTPB$pack
+}
+
+alias ftpb7s="ftpb 7 s"
+alias ftpb7sa="ftpb 7 s a"
+
+alias ftpb73r="ftpb 7.3 r"
+alias ftpb73ra="ftpb 7.3 r a"
+
+alias ftpb74r="ftpb 7.4 r"
+alias ftpb74ra="ftpb 7.4 r a"
+
+alias ftpb7=ftpb7s
+alias ftpb7a=ftpb7sa
+
+alias ftpb7r=ftpb73r
+alias ftpb7ra=ftpb73ra
+
+alias ftpb8s="ftpb 8 s"
+alias ftpb8sa="ftpb 8 s a"
+
+alias ftpb81r="ftpb 8.1 r"
+alias ftpb81ra="ftpb 8.1 r a"
+
+alias ftpb82r="ftpb 8.2 r"
+alias ftpb82ra="ftpb 8.2 r a"
+
+alias ftpb8=ftpb8s
+alias ftpb8a=ftpb8sa
+
+alias ftpb8r=ftpb81r
+alias ftpb8ra=ftpb81ra
+
+alias ftpba=ftpb8a
+alias ftpba=ftpb7ra
+
+alias wgt="wget -bc -nH -np --no-remove-listing --progress=dot:mega -a wget.log"
+alias wgt="wget -U GoZilla/1.r01 -bc -nH -np --no-remove-listing --progress=dot:mega -a wget.log"
+wgtl(){
+  log="${1##*/}"; log="${log%.*}"
+  wget -bc -nH -np -U Mozilla/1.0 --no-remove-listing --progress=dot:mega -a "${log}"_wget.log $*
+}
+
+alias curlit='curl -A GoZilla/1.0 -O -L -e ";auto" --remote-name-all'
+
+alias cha="chown -h 999:999"
+alias chra="chown -Rh 999:999"
+alias cha0="chown -h 0:0"
+alias chra0="chown -Rh 0:0"
+alias cha80="chown -h 80:80"
+alias chra80="chown -Rh 80:80"
+
+chowns() {
+  OPTS=""; GRP=0
+  while test -n "$1" -a -z "${1%-*}"; do
+    test "$1" = -g && GRP=1 || OPTS="$OPTS $1"; shift
+  done
+  test -n "$1" || return
+  for f in $*; do
+    test "$GRP" = 1 && OWNER="$f:$f" || OWNER="$f"
+    chown $OPTS "$OWNER" "$f"
+  done
+}
+
+pgctl_go(){
+  local user="$1" data="$2"; shift 2 || return
+  $SUDO -c postgres -u "$user" env - \
+    pg_ctl -D "/var/db/$user/$data" $*
+}
+
+initdb_go(){
+  local user="$1" data="$2"; shift 2 || return
+  PASW="master-key"
+  PASW_FILE="/tmp/_`getRandomMD5`"
+  echo "$PASW" > "$PASW_FILE"
+  sudo -u "$user" \
+    initdb -A md5 -E utf8 \
+    -U "SysDBA" -D "/var/db/$user/$data" \
+    --pwfile="$PASW_FILE" "$@"
+  rm "$PASW_FILE"
+}
+
+initdb_pgsql_go() { test "$1" && initdb_go pgsql "$1"; }
+initdb_swdba_go() { test "$1" && initdb_go swdba "$1"; }
+
+alias initdb_DATA="initdb_go pgsql DATA"
+alias initdb_EXAC="initdb_go pgsql EXAC"
+alias initdb_aa="echo . >/tmp/pg.pw_tmp; sudo -u pgsql initdb -D /var/db/pgsql/DATA -E UTF8 -A md5 -U aa --pwfile /tmp/pg.pw_tmp"
+
+alias restsrt=restart
+
+alias pgsql="pgctl_go pgsql DATA"
+alias pgsql_stop="(cd /bin; pgsql stop)"
+alias pgsql_start="(cd /bin; pgsql start)"
+alias pgsql_restart="(cd /bin; pgsql restart)"
+alias restart_pgsql=pgsql_restart
+
+alias pgsql_reload="(cd /bin; pgsql reload)"
+alias reload_pgsql=pgsql_reload
+
+alias pgsql_xc="pgctl_go pgsql DATA"
+alias pgsql_xc_stop="(cd /bin; pgsql_xc stop)"
+alias pgsql_xc_start="(cd /bin; pgsql_xc start)"
+alias pgsql_xc_restart="(cd /bin; pgsql_xc restart)"
+alias restart_pgsql_xc=pgsql_xc_restart
+
+alias swdba="pgctl_go swdba SWDB"
+alias swdba_stop="(cd /bin; swdba stop)"
+alias swdba_start="(cd /bin; swdba start)"
+alias swdba_restart="(cd /bin; swdba restart)"
+alias restart_swdba=swdba_restart
+
+alias swdba_reload="(cd /bin; swdba reload)"
+alias reload_swdba=swdba_reload
+
+alias pgsqll="pgsql -l /var/db/postgresql/DATA/postgresql.log"
+alias swdbal="swdba -l /var/db/postgresql/SWDB/postgresql.log"
+
+alias mysqlsvr="/usr/local/etc/rc.d/mysql-server"
+alias mysqlsvr_stop="(cd /bin; mysqlsvr stop)"
+alias mysqlsvr_start="(cd /bin; mysqlsvr start)"
+alias mysqlsvr_restart="(cd /bin; mysqlsvr restart)"
+alias restart_mysqlsvr=mysqlsvr_restart
+
+psql_() {
+  #sock_dir=/var/run/tmp
+  case "$1" in
+    p|1|5432) svr=pgsql; p=5432; adm="$svr"; D=DATA;;
+    s|2|5433) svr=swdba; p=5433; adm="$svr"; D=SWDB;;
+
+    P|4|5432) svr=pgsql; p=5432; adm=SysDBA; D=DATA;; # pass=master-key
+    S|5|5433) svr=swdba; p=5433; adm=SysDBA; D=SWDB;; # pass=master-key
+    *) return 1;;
+  esac; shift
+# psql -q -dpostgres -U$adm -p$p -h/var/db/$svr/$D $*
+##  psql -q -dpostgres -USysDBA -p5432 -h /var/db/pgsql/DATA
+###  psql -q -dpostgres -U$adm -p$p -h"$sock_dir" $*
+  psql -q -dpostgres -U$adm -p$p $*
+}
+
+# alias psql-pgsql="psql_ p"
+# alias psql-swdba="psql_ s"
+
+alias psql-p="psql_ p"
+alias psql-s="psql_ s"
+
+alias psql-P="psql_ P"
+alias psql-S="psql_ S"
+
+alias psql-p-dba="psql_ P"
+alias psql-s-dba="psql_ S"
+
+alias pgstop="pgsql stop; swdba stop"
+alias pgstart="pgsql start; swdba start"
+
+#alias apctl="$SUDO -u www env - /usr/local/sbin/apachectl"
+alias apctl="$SUDO -u \"'aaInge DR.\" env - /usr/local/sbin/apachectl"
+alias apactl=apctl
+# alias nxctl="$SUDO -u www /usr/local/etc/rc.d/nginx" # nonpriv user cannot bind to port 80
+alias _nxctl='/usr/local/etc/rc.d/nginx'
+alias nxctl_stop='(cd /bin; _nxctl stop)'
+alias nxctl_start='(cd /bin; _nxctl start)'
+alias nxctl_restart='(cd /bin; _nxctl restart)'
+alias restart_nxctl=nxctl_restart
+
+alias _htctl='/usr/local/etc/rc.d/thttpd'
+alias htctl_stop='(cd /bin; _htctl stop)'
+alias htctl_start='(cd /bin; _htctl start)'
+alias htctl_restart='(cd /bin; _htctl restart)'
+alias restart_htctl=htctl_restart
+
+#alias _fpmctl="$SUDO -u www /usr/local/bin/php-fpm.sh"
+#alias _fpmctl="$SUDO -u www php-fpm.sh"
+#alias _fpmctl='/usr/local/bin/php-fpm.sh'
+alias _fpmctl='/usr/local/etc/rc.d/php-fpm'
+alias fpmctl_stop='(cd /bin; _fpmctl stop)'
+alias fpmctl_start='(cd /bin; _fpmctl start)'
+alias fpmctl_restart='(cd /bin; _fpmctl restart)'
+alias fpmctl_reload='(cd /bin; _fpmctl reload)'
+alias restart_fpmctl=fpmctl_restart
+
+alias _fcgid=/usr/local/etc/rc.d/fcgid
+alias fcgid_stop='(cd /bin; _fcgid stop)'
+alias fcgid_start='(cd /bin; _fcgid start)'
+alias fcgid_restart='(cd /bin; _fcgid restart)'
+alias restart_fcgid=fcgid_restart
+
+alias squid_start="squid -F"
+alias squid_stop="squid -k shutdown; sss; squid -k shutdown"
+alias squid_restart="squid -k reconfigure"
+alias stop_squid=squid_stop
+alias start_squid=squid_start
+alias restart_squid=squid_restart
+
+if test "${PHP_FPM_AVAILABLE=1}" = 1; then
+  alias php_stop=fpmctl_stop
+  alias php_start=fpmctl_start
+  alias php_restart=fpmctl_restart
+  alias php_reload=fpmctl_reload
+  alias restart_php=restart_fpmctl
+else
+  alias php_stop=fcgid_stop
+  alias php_start=fcgid_start
+  alias php_restart=fcgid_restart
+  alias restart_php=restart_fcgid
+fi
+
+alias pfxctl="/usr/local/etc/rc.d/postfix"
+alias fcgi="$SUDO -u www env - /usr/local/bin/php-cgi -b 127.0.0.1:9000"
+
+alias www_stop='php_stop;htctl_stop;nxctl_stop'
+alias www_start='nxctl_start;htctl_start;php_start'
+alias www_restart='www_stop; www_start'
+alias restart_www=www_restart
+
+alias www_stop='php_stop;htctl_stop;nxctl_stop'
+alias www_start='nxctl_start;htctl_start;php_start'
+alias www_restart='www_stop; www_start'
+alias restart_www=www_restart
+
+ping0() { ping -vc3 192.168.${2:-0}.${1:-1}; }
+ping1() { ping -vc3 192.168.${2:-1}.${1:-1}; }
+
+alias google="lynx http://www.google.com/ncr"
+alias google="w3m -cookie http://www.google.com/ncr"
+alias googles="links http://www.google.com/ncr"
+alias googles="elinks http://www.google.com/ncr"
+alias spidi="links http://portal.telkomspeedy.com/index.php\?flash=-1"
+alias spidu="links http://portal.telkomspeedy.com/index.php\?act=infousage"
+alias spidu="w3c http://portal.telkomspeedy.com/index.php\?act=infousage"
+alias spido="w3c http://opensource.telkomspeedy.com/forum/search.php?action=show_24h"
+# alias synctime="ntpdate -b ntp.kim.lipi.go.id"
+alias synctime="ntpdate -b time.telkom.net.id"
+
+alias itun="ifconfig tun0"
+alias spidi-start="Speedy1 start"
+
+# this style is broken in netbsd
+# alias spidodol='(
+#  cd /bin
+#  (ifconfig tun0|grep -A1 inet) 2>/dev/null &&
+#    while (ifconfig tun0|grep -qi inet)
+#    do killall -HUP ppp; sleep 1; done
+#  spidi-start
+# )'
+
+alias wt="$SUDO watch -t"
+alias wtw="$SUDO watch -tW"
+
+alias w3c="w3m -cookie"
+
+#StUpid-DO alias grep="$SUDO grep"
+
+alias grepr="grep -r"
+alias grepi="grep -i"
+alias grepl="grep -l"
+alias grepw="grep -w"
+
+alias grepwi="grep -wi"
+alias grepiw="grep -iw"
+
+alias greprl="grep -rl"
+alias greplr="grep -lr"
+
+alias greplri="grep -lri"
+alias greprli="grep -rli"
+
+alias g="$SUDO egrep"
+
+alias gi="egrep -i"
+alias gr="egrep -r"
+alias gw="egrep -w"
+
+alias grl="egrep -rl"
+alias gri="egrep -ri"
+
+alias gril="egrep -rli"
+alias girl="egrep -rli"
+
+alias kall=killall
+alias kilal=killall
+alias kilall=killall
+alias killal=killall
+
+alias tlenet=telnet
+alias telenet=telnet
+
+#telkomnet() { [ $2 ] && telnet "$1.telkom.net.id" $2; }
+#alias telkomsmtp="telkomnet smtp 25"
+#alias telkompop="telkomnet pop3 110"
+alias telpop="telnet pop3.telkom.net.id 110"
+
+alias mqn=man
+alias msn=man
+alias mzn=man
+alias mwn=man
+alias mana="man -a"
+alias mqna="man -a"
+alias msna="man -a"
+alias mzna="man -a"
+alias mwna="man -a"
+
+alias foo="/usr/games/fortune -o"
+
+alias cd.="cd -P ."
+alias cdp="cd -P"
+alias cdp.="cd -P ."
+alias cdz="cd /zpools"
+alias cpl="cp -l"
+alias cplr="cp -Rlp"
+
+alias pushd.="pushd ."
+alias popd.="popd;pushd."
+alias p0="pushd ."
+alias pp="popd"
+
+tarik() {
+  local UNLINK="$1"
+  test "$1" = "--unlink" && shift || UNLINK=
+  [ "$1" ] || \
+{ cat <<::
+
+  # Usage: ${FUNCNAME:-tarik} dir1 [ dir2 ]
+  #
+  # identical copy dir1 to dir2 $UNLINK
+  # if not specified, dir2 = currentdir,
+  # if not exist yet dir2 will be created
+
+::
+return 1
+}
+  test -d "$1" && (
+    local SRCDIR=`realpath "$1"`
+    local DSTDIR="${2:-.}"
+    test -d "$DSTDIR" || mkdir -p "$DSTDIR"
+    cd -P "$DSTDIR" || { echo "Error invalid destdir: $DSTDIR"; return 1; }
+    (cd -P "$SRCDIR"; tar -cpf- .) | tar $UNLINK -xpf-
+    cd -
+  )
+}
+
+tarikx() { tarik --unlink $@; }
+
+_cdto() { cd $1/$2; }
+_cdpto() { cd -P $1/$2; }
+
+alias ce="_cdto /etc"
+
+alias cdl="_cdto /usr/local"
+alias cdal="_cdto /usr/_local"
+alias cdll="_cdto /usr/local/lib"
+alias cdle="_cdto /usr/local/etc"
+alias cdlsb="_cdto /usr/local/sbin"
+#alias cdls="_cdto /usr/local/share"
+alias cdlsh="_cdto /usr/local/share"
+alias cdlsd="_cdto /usr/local/share/doc"
+alias cdlsp="_cdto /usr/local/share/pear"
+alias cdlspp="_cdto /usr/local/share/pear/packages"
+alias cdlsppp="_cdto /usr/local/share/pear/packages/.PEAR"
+alias cdlp="_cdto /usr/local/pgsql"
+alias cdlpg="_cdto /usr/local/lib/php"
+alias cds="_cdto /usr/local/share"
+alias cde="_cdto /usr/local/etc"
+alias cdep="_cdto /usr/local/etc/postfix"
+alias cdr="_cdto /usr/local/etc/rc.d"
+alias cdn="_cdto /usr/local/etc/nginx"
+alias cdb="_cdto /usr/local/bin"
+alias cdw="_cdto /www/html"
+alias cda="_cdto /dist/All"
+alias cdd="_cdto /usr/ports/distfiles"
+alias cdk="_cdto /var/db/pkg"
+alias cdo="_cdto /var/log"
+alias cdow="_cdto /var/log/www"
+
+alias cdaa="_cdto /base/aa"
+alias cdaw="_cdto /base/aa/workshop"
+alias cdar="_cdto /base/aa/articles"
+alias cdap="_cdto /base/aa/workshop/patches"
+alias cdpp="_cdpto /usr/ports"
+alias cdpkg="_cdpto /usr/ports/packages"
+alias cdppb="_cdpto /usr/ports/.b*"
+alias cdppb0="_cdpto /usr/ports/.b*/*0k"
+alias cdppp="_cdpto /usr/ports/.patc*"
+alias cdppk="_cdpto /usr/ports/packages"
+alias cdppw="_cdpto /usr/ports/workdir/usr/ports"
+alias cdppl="_cdpto /usr/ports/.perl"
+
+#temp...
+alias cdf="_cdto /web/php_fix"
+alias cdh="_cdto /web/php-5.3.0s"
+alias cdnx="_cdto /web/nginx-0.7.63"
+
+alias rmrx="rm -R .* *"
+
+alias shlinks='for sh in *.sh; { test -L "${sh%.sh}" -o -e "${sh%.sh}" || ln -vs "$sh" "${sh%.sh}"; }'
+
+alias findn="find -dx . -name"
+alias findi="find -dx . -iname"
+#alias mc="cd `/usr/local/bin/mcl -P`"
+
+m3key="flags,gid,mode,nlink,size,link,uid"; export m3key
+alias m3="mtree -k $m3key"
+
+#checks for string's elements
+isnums() { test "$1" && test "${1##*[!0-9]*}"; };	# decimal
+ishexs() { test "$1" && test "${1##*[!0-9a-fA-F]*}"; };	# hex
+ishexslo() { test "$1" && test "${1##*[!0-9a-f]*}"; };	# lowercase hex
+ishexsup() { test "$1" && test "${1##*[!0-9A-F]*}"; };	# uppercase hex
+
+timetrx() {
+  test "$1" && date `date -v "$1" +%C%y%m%d%H%M.%S` || \
+    echo 'time-traveler/teleporter, using arg1: +|- N y|m|d|H|M|S'
+}
+
+#alias utctime='date -v $ans +%C%y%m%d%H%M.%S'
+alias timex='read -p "Use: +|- y|m|d|H|M|S. goto time offset: " ans; test "$ans" && date `date -v "$ans" +%C%y%m%d%H%M.%S`'
+alias currtime='date -j +%F.%T'	# CCYY-mm-dd.HH:MM:SS
+alias today='date -j "+%Y.%m.%d %H:%M:%S"'
+
+#alias ticks='date -j "+%s"'
+#__zero2digit() { test $(($1)) -lt 10 && echo -n 0$(($1)) || echo -n $(($1)); }
+#
+#tickstime() {
+#  ts=${1?error: missing argument}
+#  test "${ts##*[!0-9]*}" || { echo error: argument is not an integer; return 2; }
+#  test $ts -lt 0 && { echo limitless; return 3; }
+#  case $ts in
+#    0) echo unchanged;;
+#    1) echo a second\!;;
+#    60) echo a minute;;
+#    3600) echo an hour;;
+#    86400) echo a day;;
+#    604800) echo a week;;	# 3600*24*7   =	604800
+#    2592000) echo a month;;	# 3600*24*30  =	2592000
+#    31536000) echo a year;;	# 3600*24*365 =	31536000
+#
+#   *) tics="$ts seconds"
+#      if test "$ts" -le 60; then echo "$tics"
+#      else #echo "$(date -j -r "${ts}" "+%T") ($tics)"
+#	s=$(($ts%60));ts=$(($ts/60)); test $s -lt 10 && s=0$s
+#	test $ts -le 60 && \
+#	  { test $ts -lt 10 && ts=0$ts; echo "00:$ts:$s"; return 0; }
+#	m=$(($ts%60));ts=$(($ts/60)); test $m -lt 10 && m=0$m
+#	test $ts -le 60 && \
+#	  { test $ts -lt 10 && ts=0$ts; echo "$ts:$m:$s"; return 0; }
+#	h=$(($ts%24));ts=$(($ts/24)); test $h -lt 10 && h=0$h
+#        test $ts -eq 0 && { echo $h:$m:$s; return 0; }
+#	test $ts = 1 && ts="$ts day " || ts="${ts} days "
+#        echo ${ts}$h:$m:$s
+#      fi
+#  esac
+#  return 0
+#}
+
+alias hms='date -j "+%H%M%S"'
+alias dms='date -j "+%Y%m%d-%H%M%S"'
+
+alias ticks='date -j "+%s"'
+tickstotime() { #slower but much readable
+  t=${1?error: missing argument}
+  test "${t##*[!0-9]*}" || { echo error: argument is not an integer; return 2; }
+  test $t -lt 0 && { echo limitless; return 3; }
+  case $t in
+    0) echo unchanged;;
+    1) echo a second\!;;
+    60) echo a minute;;
+    3600) echo an hour;;
+    86400) echo a day;;
+    604800) echo a week;;	# 3600*24*7   = 604800
+    2592000) echo a month;;	# 3600*24*30  = 2592000
+    31536000) echo a year;;	# 3600*24*365 = 31536000
+    *)tics="$t seconds"
+      if test "$t" -le 60; then echo "$tics"
+      else #echo "`date -j -r "$t" "+%T"` ($tics)";;
+	s="$(($t%60))"; t="$(($t/60))"
+	m="$(($t%60))"; t="$(($t/60))"
+	h="$(($t%24))"; t="$(($t/24))"
+	test $s -lt 10 && s=0$s
+	test $m -lt 10 && m=0$m
+	test $h -lt 10 && h=0$h
+	test $t -gt 0 && {
+	  test $t = 1 && t="$t day " || t="$t days "
+	} || t=""
+	echo $t$h:$m:$s
+      fi;;
+    esac; return 0
+}
+
+gettempno() {
+  # call with args: fullname .suffix
+  # (include dot prefix if its intended to)
+  test "$1" || { echo 000000"$2"; return 1; }
+  local r=0 no=000000 SEPARATOR=.
+  while test -e "$1$SEPARATOR$no$2"; do r="$(($r+1))"
+      if test $r -lt 10; then no=00000$r
+    elif test $r -lt 100; then no=0000$r
+    elif test $r -lt 1000; then no=000$r
+    elif test $r -lt 10000; then no=00$r
+    elif test $r -lt 100000; then no=0$r
+    else no=$r
+    fi
+  done
+  echo "$1$SEPARATOR$no$2"
+}
+
+getbool() {
+  case "$1" in
+    0|N|n|F|f|[Nn][Oo]|[Nn][Oo][Tt]|[Oo][Ff][Ff]|[Ff][Aa][Ll][Ss][Ee]) echo "0";;
+    1|Y\y|T|t|[Yy][Ee][Ss]|[Oo][Nn]|[Tt]|[Tt][Rr][Uu][Ee]) echo "1";;
+  esac
+}
+
+gettempno() {   # get countered temp.filename
+  test "$1" || { echo 00000"$2"; return 1; }
+  local r=0 no=00000 SEPARATOR=.
+  while test -e "$1$SEPARATOR$no$2"; do r="$(($r+1))"
+      if test $r -lt 10; then no=0000$r
+    elif test $r -lt 100; then no=000$r
+    elif test $r -lt 1000; then no=00$r
+    elif test $r -lt 10000; then no=0$r
+    else no=$r
+    fi
+  done
+  echo "$1$SEPARATOR$no$2"
+}
+
+gettempno() {   # get countered temp.filename
+  test "$1" || { echo 0000"$2"; return 1; }
+  local r=0 no=0000 SEPARATOR=.
+  while test -e "$1$SEPARATOR$no$2"; do r="$(($r+1))"
+      if test $r -lt 10; then no=000$r
+    elif test $r -lt 100; then no=00$r
+    elif test $r -lt 1000; then no=0$r
+    else no=$r
+    fi
+  done
+  echo "$1$SEPARATOR$no$2"
+}
+
+gettempno() {
+  case "$1" in -[?hH]|--help|[?]) echo '
+# get countered temp.filename + .ext
+# used for creating backup filename
+#
+# call with args: fullname .suffix
+# (include dot prefix if its intended to)
+  '; return;; esac;
+  test "$1" || { echo 000"$2"; return 1; }
+  local r=0 no=000 SEPARATOR=.
+  while test -e "$1$SEPARATOR$no$2"; do r="$(($r+1))"
+      if test $r -lt 10; then no=000$r
+    elif test $r -lt 100; then no=00$r
+    else no=$r
+    fi
+  done
+  echo "$1$SEPARATOR$no$2"
+}
+
+getbakname() {
+  test -n "$1" || { echo 000; return; }
+  test -e "$1" || { echo "$1"; return; }
+  SEP="-"; ext="${1##*.}"
+  test "$ext" != "$1" && ext=".$ext" || ext=""
+  base="${1%$ext}"; base="${base%$SEP???}"
+  r=0; CTR=000; # max=999
+  while test -e "$base$SEP$CTR$ext"; do r=$(($r+1))
+    if test $r -lt 10; then CTR=00$r
+    elif test $r -lt 100; then CTR=0$r
+    else CTR=$r
+    fi
+  done
+  echo "$base$SEP$CTR$ext"
+}
+
+getmaxtextmode_expensive() {
+# reliable but expensive
+vidcontrol -i mode | grep T | \
+  cut -f2 -dT | cut -f2 -d " " | \
+    sort | uniq | tail -n1 2>/dev/null
+}
+
+getmaxtextmode() {
+  vc_textmodes() {
+    local IFS="
+    ";for line in `vidcontrol -i mode`; do
+      test -z "${line##* T *}" || continue
+      m="${line##* T }"; m="${m%% *}"
+      echo -n "$m:"
+    done
+  }
+
+  local vc_M=VGA_40x25
+  local vc_T=":`vc_textmodes`"
+
+  vc_testmode() { test -z "${vc_T##*:$2:*}" && vc_M="$1"_"$2"; }
+  v() { vc_testmode VGA $1; }; e() { vc_testmode VESA $1; }
+
+  e 132x60 || e 132x50 || \
+  v  90x60 || v  90x50 || \
+  v  80x60 || v  80x50 || v 80x25
+
+  echo $vc_M
+}
+
+getmaxtextmode() { local IFS="
+" i m modes=""
+  for i in `vidcontrol -i mode`; do
+    test "${i##* T *}" && continue
+    m="${i##* T }"; modes="$modes:${m%% *}"
+  done; modes="$modes:"
+  for m in 132x60 132x50 90x60 90x50 80x60 80x50 80x25 40x25
+    { test "${modes##*:$m:*}" || break; }
+  test -n "${m%132*}" && echo "VGA_$m" || echo "VESA_$m"
+  return 0
+}
+
+gettempno=""
+
+getIndexedTempName() { # fullname .suffix separator=. digits=3
+  local MAX_DIGITS=255 DEFAULT_DIGITS=3
+  local SEPARATOR DEFAULT_SEPARATOR=.
+
+  #can't do this, $3 may be intentionally null
+  #local SEPARATOR=${3:-$DEFAULT_SEPARATOR}
+  test "$#" -gt 2 && SEPARATOR="$3" || SEPARATOR=$DEFAULT_SEPARATOR
+
+  local DIGITS=${4:-3}
+  test "${DIGITS##*[!0-9]*}" || DIGITS=$DEFAULT_DIGITS
+  test $DIGITS -gt $MAX_DIGITS && DIGITS=$MAX_DIGITS # not too much
+
+  local r=0 INDEX=0
+  while test ${#INDEX} -lt $DIGITS; do INDEX=0$INDEX; done
+  while test -e "$1$SEPARATOR$INDEX$2"; do
+    r="$(($r+1))"; INDEX=$r
+    while test ${#INDEX} -lt $DIGITS; do INDEX=0$INDEX; done
+  done
+  echo "$1$SEPARATOR$INDEX$2"
+}
+
+getRandomMD5() { dd if=/dev/random count=1 2>/dev/null | md5 -q; } #example
+
+#stat/readlink
+# d       Device upon which file resides.
+# i       file's inode number.
+# p       File type and permissions.
+# l       Number of hard links to file.
+# u,g     User ID and group ID of file's owner.
+# r       Device number for character and block device special files.
+# a,m,c,B The time file was last accessed or modified, of when the inode
+#         was last changed, or the birth time of the inode.
+# z       The size of file in bytes.
+# b       Number of blocks allocated for file.
+# k       Optimal file system I/O operation block size.
+# f       User defined flags for file.
+# v       Inode generation number.
+#
+statsx() {
+local VARS="\
+ st_dev=%#Xd\
+ st_ino=%#Xi\
+ st_mode=%#Xp\
+ st_nlink=%#Xl\
+ st_uid=%#Xu\
+ st_gid=%#Xg\
+ st_rdev=%#Xr\
+ st_size=%#Xz\
+ st_atime=%#Xa\
+ st_mtime=%#Xm\
+ st_ctime=%#Xc\
+ st_blksize=%#Xk\
+ st_blocks=%#Xb\
+ st_flags=%#Xf\
+ st_major=%#XHr\
+ st_minor=%#XLr\
+ st_name=%N\
+"; stat -f "$VARS" $@
+}
+
+#get_filesize() { stat -f%z $*; }
+alias getfsize="stat -f%z"
+alias getfileinfo='stat -f "%N=%z %i:%l %p-%#f"'
+distinfo() {
+	for arg; do
+		test -e "$arg" && name="${arg##*/}" || continue
+		echo "SHA256 ($name) = `sha256 -q "$arg"`"
+		echo "SIZE ($name) = `stat -f%z "$arg"`";
+	done
+}
+#broken, in FreeBSD7 /dev/random is an endless stream
+#alias random='(cat /dev/random|md5)'
+
+# pipe will force subshell in bash, leads to weirdness and confusion
+# alias random='dd if=/dev/random count=1 2>/dev/null | md5 -q'
+alias random='md5 -qs "`dd if=/dev/random count=1 2>&1`"'
+
+#
+#     dec     oct    hex  flag    description
+# --------------------------------------------------------------------------------
+#   65536  200000  10000  arch    archived flag (super-user only)
+#       8      10      8  opaque  opaque flag (owner or super-user only)
+#       1       1      1  nodump  nodump flag (owner or super-user only)
+#  262144 1000000  40000  sappnd  system append-only flag (super-user only)
+#  131072  400000  20000  schg    system immutable flag (super-user only)
+# 1048576 4000000 100000  sunlnk  system undeletable flag (super-user only)
+#       4       4      4  uappnd  user append-only flag (owner or super-user only)
+#       2       2      2  uchg    user immutable flag (owner or super-user only)
+#      16      20     10  uunlnk  user undeletable flag (owner or super-user only)
+#
+# aliases:  archived, sappend, schange, simmutable,
+#           uappend, uchange, uimmutable, sunlink, uunlink
+#
+# sappnd,schg,sunlnk/uunlnk -> may not be deleted if set
+# uappnd,uchg -> may be deleted by force by internal bsd-tool rm -f
+#                but external app (such as midnight commander) may be can not
+#
+
+#freebsd 7+
+alias chflags_h="$SUDO chflags -h"
+alias chflags_r="$SUDO chflags -R"
+
+#flash() {
+#  test -n "$1" || return 1; local op=""
+#  case "$1" in on|-on|+) shift;;
+#    off|-off|no|-) op=no; shift;;
+#  esac; test -e "$1" || return 1
+#  chflags_h ${op}schg $*
+#}
+#
+#flask() {
+#  test -n "$1" || return 1; local op=""
+#  case "$1" in on|-on|+) shift;;
+#    off|-off|no|-) op=no; shift;;
+#  esac; test -e "$1" || return 1
+#  chflags_h ${op}schg,${op}sunlnk $*
+#}
+#
+#alias unflash="flash -off"
+#alias unflask="flask -off"
+
+# protect/unprotec zero-size file only
+flash0() { for f in $*; { test -f "$f" -a ! -s "$f" && chflags_h schg "$f"; }; }
+unflash0() { for f in $*; { test -f "$f" -a ! -s "$f" && chflags_h noschg "$f"; }; }
+
+alias flash="chflags_h schg"
+alias flask="chflags_h schg,sunlnk"
+alias flashr="chflags -R schg"
+alias flaskr="chflags -R schg,sunlnk"
+
+alias unflash="chflags_h noschg"
+alias unflask="chflags_h noschg,nosunlnk"
+alias unflashr="chflags -R noschg"
+alias unflaskr="chflags -R noschg,nosunlnk"
+
+alias unflashx="chflags_h noschg,nosappnd,nosunlnk,nouchg,nouappnd,nouunlnk"
+alias unflashxr="chflags -R noschg,nosappnd,nosunlnk,nouchg,nouappnd,nouunlnk"
+
+rene() {
+  test "$2" && \
+    for f in *"$1"; { mv "$f" "${f%$1}$2"; }
+}
+
+#alias rentgz="rene .tgz .tar.gz"
+#alias rentargz="rene .tar.gz .tgz"
+#do not use function so it still be accessible by impotent shell
+alias rentgz='for f in *.tgz; { mv "$f" "${f%.tgz}.tar.gz"; }'
+alias rentargz='for f in *.tar.gz; { mv "$f" "${f%.tar.gz}.tgz"; }'
+
+export MT_NTFS=noatime,noexec,nosuid,nodev,-M755
+export MT_FAT=$MT_NTFS,-m644
+
+mcd() { test "$1" && { mount "$1"; cd "$1"; } }
+
+# Usage: [sh] ${0##*/} [ -m | -u ] [ iso-images or mountpoints.. ]
+#
+# Where:
+#  -m     : mount
+#  -u     : unmount and detach/delete md-unit
+#  name   : either iso files or mountpoints dirs
+# 	    could be with our without .iso extension
+#
+# Notes   :
+# 	mountpoints are automatically created or deleted
+# 	based on iso-filename+md-unit
+#
+# 	one file.iso could be mounted several times
+#
+# 	upon unmounting file.isos (not dirs), all associated
+# 	mountpoints and md-unit with those iso files, if any,
+# 	will all be dropped
+#
+# Examples
+# 	${0##*/} -m *.iso ; mount all iso images in current dir
+# 	${0##*/} -u *.iso ; unmount all iso images in current dir
+
+miso(){
+  for r in $*; do
+    iso="$r"; test -f "$r" || iso="${r%.iso}.iso"
+    test -s "$iso" || continue
+    u=`$SUDO mdconfig -n -a -t vnode -f "$iso"` || continue
+    mp="${iso%.iso}.$u"
+    test -d "$mp" || {
+      $SUDO mkdir -m 777 -p "$mp" || { $SUDO mdconfig -d -u $u; continue; }
+    }
+    $SUDO mount -vt cd9660 -onoatime /dev/md$u $mp
+  done
+}
+
+umiso() {
+  for r in $*; do
+    test -d "$r" && mps="$r" || mps="${r%.iso}.[0-9]*"
+    for d in $mps; do
+      test -d "$d" && $SUDO umount -v "$d" || continue
+      u="${d##*.}"; $SUDO mdconfig -d -u $u || continue
+      test ! -e /dev/md$u && rmdir "$d"
+    done
+  done
+}
+
+remount() { for disk in $*; { $SUDO umount "$disk"; $SUDO mount "$disk"; } }
+
+alias mw=mountw
+mountw() { mountpoints=`get_mountpoints -a`; for disk in $*; { test -e "$disk" && $SUDO mount -uw -onoatime `get_root $disk`; } }
+mountr() { mountpoints=`get_mountpoints -a`; for disk in $*; { test -e "$disk" && $SUDO mount -ur -onoatime `get_root $disk`; } }
+
+do_mounts_umounts() {
+  test -n "$1" && local opt= || return
+  while test -n "$1" -a -z "${1%%-*}"; do opt="$1"; shift; done
+  for f in $*; { $SUDO $mount $opt $f; }
+}
+
+mounts() { local mount=mount; do_mounts_umounts "$@"; }
+umounts() { local mount=umount; do_mounts_umounts "$@"; }
+
+mounto() {
+  # BSD/UFS only!
+  mroot=/tmp/mounts/BSD
+  for disk in $*; do
+    slice="${disk#/dev/}"
+    disk="/dev/$slice"
+    empot="$mroot/$slice"
+    test -d "$empot" || $SUDO mkdir -m 777 -p "$empot"
+    test -d "$empot" || return
+    $SUDO mount -v "$disk" "$empot"
+  done
+}
+
+alias mwd=mountwdos
+mountdos() { $SUDO mount -t msdos -onoatime,noexec,nosuid,-m644,-M755,-u999,-g999,${rwop:-ro} $*; }
+mountwdos() { rwop=rw mountdos $*; }
+
+fscks() { local op="";
+  while test -n "$1" -a -z "${1%%-*}"; do op="$op $1"; shift; done
+  for d in $*; { $SUDO fsck $op $d; }
+}
+
+alias fsck0="for r in / /var /usr/local; do fsck -Cy $r; done"
+# alias fscka='for f in `grep "^\/" /etc/fstab | cut -f2`; do test -z "${f%/*}" && $SUDO fsck -Cy $f; done'
+# alias fscka='for f in `grep "^[	 ]*\/.*fs[	 ]" /etc/fstab | cut -d\  -f1`; do echo $SUDO fsck -Cy $f; done'
+#alias fscka="$SUDO fsck -Cy /dev/ad[0-9]*s[1-4][ad-z] /dev/da[0-9]*s[1-4][ad-z]"
+#alias fscka="$SUDO fsck -Cy /dev/[ad][ad][0-9]*s[1-4][ad-z]"
+alias fscka="$SUDO fsck -Cy /dev/ufs/*"
+
+sz_tobytes() { local sz=${1%[mMkKgGtT]}
+  #max 9223372036854775807 bytes, overflow simply return 0
+  if `isnums $sz`; then
+    case $1 in "") echo $1;;
+	*[kK]) echo "$(($sz*1024))";;		#1024
+	*[mM]) echo "$(($sz*1048576))";;	#1024^2
+	*[gG]) echo "$(($sz*1073741824))";;	#1024^3
+	*[tT]) echo "$(($sz*1099511627776))";;	#1024^4
+#	*[pP]) echo "$(($sz*1125899906842624))";;	#1024^5
+    esac
+  fi
+}
+
+sz_tosectors() { local sz=${1%[mMkKgGtT]}
+  #max 9223372036854775807 bytes, overflow simply return 0
+  if `isnums $sz`; then
+    case $1 in "") echo "$((($1+511)/512))";;
+	*[kK]) echo "$(($sz*2))";;
+	*[mM]) echo "$(($sz*2048))";;		#2 * 1024
+	*[gG]) echo "$(($sz*2097152))";;	#2 * 1024^2
+	*[tT]) echo "$(($sz*2147483648))";;	#2 * 1024^3
+#	*[pP]) echo "$(($sz*2199023255552))";;	#2 * 1024^4
+    esac
+  fi
+}
+
+mount_md() {
+#   local size=`sz_tosectors ${2:-16M}`
+#   test -d "$1" && `isnums "$size"` || \
+#     { echo usage: mount_md mountpoint size; return 1; }
+#   mount_mfs -s $size -T qp120at -b 8192 -f 1024 dummy $1
+#   #  mount_mfs -s $size -T qp102at -b 4096 -f 512 -i 512  dummy $mountpoint
+echo "
+deprecated.
+
+  use instead, for instance:
+    mdmfs -s32m md999 /tmp; # size: 32MB, devno: 999, mountpoint: /tmp
+
+  to remove, unmount AND delete the associated device number:
+    umount /tmp; mdconfig -d -u 999;
+"
+}
+
+#the best value for /dev replacement under read-only root environment
+#alias mount_mfs4dev="mount_mfs -s 4096 -T qp120at -b 4096 -f 512 -i 512 dummy /dev"
+
+last_arg() { test "$#" -gt 1 && shift "$(($#-1))"; echo "$1"; }
+get_last_arg() { test "$#" -gt 1 && { shift "$(($#-1))"; echo "$1"; }; }
+
+# deprecated! # get_lastarg() {
+#  #**********************NOT-WORK-:((
+#  #IFS=		#<Ctrl-\> to avoid conflict
+#  #echo "${*##*"$IFS"}"	#IFS MUST be quoted here
+#  #**********************NOT-WORK-:((
+#  while test "$#" -gt 1; do shift; done; echo $@
+#}
+
+renext() {
+  # rename extension only, DOS style
+  local ext=`get_last_arg $*`
+  test -n "$2" -a -n "$ext" || return 1
+  ext=".${ext#.}"
+  while test "$#" -gt 1; do
+    base="${1%.*}"
+    test -n "$base" -o base = "$1"
+    mv "$1" "$base$ext"
+    shift
+  done
+}
+
+expar(){
+  # expand puncts delimited string as arguments
+  local args="" punc='[!a-zA-Z0-9]'
+  expn() {
+    local A="$1"
+    while test "$A"; do
+      A1="${A#?*}"         # A1 is equal A, except 1st char cut
+      sign="${A%$A1}"      # 1st char (sign/delimiter/punctuation)
+      word="${A1%%$punc*}" # 1st word (excl. delim)
+      arg="$sign$word"     # arg - simply a combination of aboves
+      args="$args$IFS$arg" # result - simply an accumulation of args + IFS
+      A="${A#$arg}"        # fix/cut original A
+    done
+    }
+  while test "$1"; do expn "$1"; shift; done
+  echo $args
+}
+
+
+sum_phpr() {
+  # count total inodes/dirs must be created
+  # (used for php session directories)
+  isnums "$1" && isnums "$2" || { echo arguments: bits depth >&2; return 1; }
+  [ "$(($1*$2))" -lt 61 ] || return
+  local i=1 result=1 base=1 bits=$1 depth=$2
+
+  # sh had no power
+  while [ $i -le $bits ]; do
+    i="$(($i+1))"
+    base="$(($base+$base))"
+  done
+
+  i=0; bits=$base
+  while [ $i -lt $depth ]; do
+    result="$(($result+$base))"
+    base="$(($base*$bits))"
+    i="$(($i+1))"
+  done
+  echo $result
+}
+
+
+get_diskSize() {
+local param IFS='
+'
+  for param in `fdisk -s $1`; { param=${param#*: }; break; }
+  IFS=" ";
+  set -- $param
+  sectors="$(($1 * $3 * $5))"
+  echo "$(($sectors/16065)) C $sectors S $(($sectors / 2)) KB"
+}
+
+cput() { test "$1" && local got="`which $1`" && echo "$got" && test -f "$got" && cp $got .; }
+
+xch() {
+  test -w "$1" -a -w "$2" || return 1
+  local r=0; while test -e "$1.$r"; do r="$(($r+1))"; done
+  mv "$1" "$1.$r" && mv "$2" "$1" && mv "$1.$r" "$2"
+}
+
+resolv() {
+  local a=/etc/resolv.conf; local b=$a
+  test -e $a.b && a=$a.b || b=$b.b
+  test -e $a && { echo "$a -> $b"; mv -f "$a" "$b"; }
+}
+
+# poorguys basename/dirname, accepts no fancy additional arguments,
+# just give an (hopefuly) fbsd4/5 compatible result
+#
+f_basename() {	test -z "$1" && { echo ""; return 0;}
+  test -z "${1##*/}" && local b="${1%${1##*[!/]}}" || local b="$1"
+  b="${b##*/}"; echo ${b:=/}
+}
+f_dirname() { test -z "$1" && { echo "."; return 0; }
+  test -z "${1##*/}" && local d="${1%${1##*[!/]}}" || local d="$1"
+  test -n "${d#*/*}" && d=. || {
+    d="${d%/*}"; test -z "${1##*/}" && d="${d%${d##*[!/]}}"
+  }; echo "${d:=/}"
+}
+
+#ldep() {
+#  local f; for f in $*; do
+#    echo -n "$f: "
+#    strings "$f" | grep "^lib.*\.so" | sort | uniq | xargs echo -n | sed s/" "/", "/g
+#  done
+#}
+
+loc() {
+  # poorman's which
+  # loc_opt value
+  #   0 (or unset): express both of found and not found files
+  #   1 : show only found files
+  #  10 : show only not found files
+  #  11 : dont show anything, use only return value
+  # 1xx : break on the first not found
+  test -n "$1" || return -1
+  local x P found="" i="" n=""
+  loc_opt="${loc_opt:-0}"
+  for x in $*; do
+    found="";
+    i="$(($i+1))"
+    local IFS=:
+    for P in \.:$PATH; do
+      test -r "$P/$x" || continue
+      test "$((($loc_opt % 100) / 10))" -ge 1 || echo "$P/$x"
+      found=$i;
+      break;
+    done
+    test "$found" && continue
+    test "$(($loc_opt % 10))" -ge 1 || echo "$x: not found"
+    test "$(($loc_opt / 100))" -ge 1 && return $i
+    test "$n" || n=$i
+  done;
+  return $n
+}
+
+ldep() {
+
+  test "$1" || { cat <<:
+
+  # usage: ${FUNCNAME:=ldep} file...
+  # check required shared libraries
+
+:
+return 1; }
+  loc_opt=10 loc strings grep sort uniq xargs || return $?
+  echo; local L f
+  for f; do
+    test -f "$f" || f=`loc_opt=1 loc "$f"`
+    test -f "$f" -a -r "$f" || continue
+    L="`strings $f | grep "^lib.*\.so" | sort | uniq | xargs echo -n`"
+    test "$L" || L="NONE"
+    echo "$f: $L"
+  done
+}
+
+alias ckld=ldck
+ldck() {
+  D="/lib /usr/lib /usr/local/lib"
+  DD="somedir another/dir some/other/dir"
+  test "$1" || { cat <<:
+
+  # usage: ${FUNCNAME:=ldck} [ -|+d "libdirs" ] file(s)...
+  # check shared library dependencies "availability"
+  #
+  #   use argument -d "$DD"
+  #   to replace default libdirs search: "$D" "$PWD"
+  #
+  #   use argument +d "$DD"
+  #   to add libdirs search to default
+  #
+  # important! use double-quotes to specify more than 1 dirs
+
+:
+return 1; }
+  for r in $D; do for d in "$r"/*
+    { test -d "$d" && D="$D $d"; }
+  done; D="$D $PWD"
+
+  if test "$1" = "-d"; then D="$2"; shift 2;
+  elif test "$1" = "+d"; then D="$D $2"; shift 2; fi
+  test "$1" || return 1
+
+  local req="strings grep sort uniq"
+  loc_opt=10 loc $req || { D=; return 1; }
+
+# case "$LDCK_SEARCH_IN_PATH" in
+#   1|[YyTt]|[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee])
+# # search target file in PATH
+#     L="`( for f; do test -f "$f" && x="$f" || x="$(loc_opt=1 loc "$f")";
+#     test -f "$x" && f="$x"; strings "$f"; done;
+#     ) | grep -i "^lib[a-z0-9_.-]*\.so" | sort | uniq`";;
+# 
+#   *)
+# # search literally as argument given
+     L="`( for f; do strings "$f"; done; ) | grep -i "^lib[a-z0-9_.-]*\.so" | sort | uniq`"
+# ;; esac
+
+  if test -n "$L"; then echo -e dependencies:
+    else echo -e "no dependency has been found"
+  fi
+  local l; for l in $L; do
+    for d in $D; do local found="" f="$d/$l"
+      test -d "$d" -a -f "$f" || continue
+      echo "  $f"; found=1; break
+    done; test "$found" && continue
+    echo "  not found: $l"
+  done
+}
+
+#   L="`( for f; do test -f "$f" || f="$(loc_opt=1 loc "$f")"; strings "$f"; done;
+#   ) | grep -i "^lib[a-z0-9_.-]*\.so" | sort | uniq`"
+
+cklds() {
+  OPTS=
+  while test -n "$1" -a -z "${1%%[+-]*}"
+    do OPTS="$OPTS $1"; shift; done
+  for f in $*
+    { echo -n "$f "; ckld $OPTS $f; echo; }
+}
+
+ckldf() {
+  test "$1" || ckld
+  f=`which -a "$1"` || { echo "$1 not found"; return 2; }
+  echo -n "$f "; ckld "$f"
+}
+
+clspg() {
+  local n="`expr ${1:-60} / 10`"
+  while test $n -gt 1; do
+    echo -e "\n\n\n\n\n\n\n\n\n\n"
+    n="$(($n-1))"
+  done
+}
+
+rfc() {
+  local rfcn=/usr/share/doc/rfcs/rfc$1.txt;
+  test -f $rfcn && less $rfcn || echo $rfcn not found;
+}
+
+hb(){
+  h=/usr/share/doc/handbook/index.html
+  case "${1#-}" in
+    w|3|w3m) w3m $h;; x|lynx) lynx $h;;
+    *) links $h;;
+  esac
+}
+
+#d() {
+#  local MC=`/usr/local/bin/mc -P "$@"`
+#  test -n "$MC" && cd "$MC"
+# };
+
+#d() {
+# . /usr/local/share/mc/bin/mc-wrapper.sh
+# test -f ~/.mc/ini && rm -f ~/.mc/ini
+#}
+alias d="DONE_INIT="" . /usr/local/share/mc/bin/mc-wrapper.sh; test -f ~/.mc/ini && rm -f ~/.mc/ini"
+
+#midnight light
+#alias dl='cd "`mcl -P`"'
+
+#the rest below might need root privilege
+#-----------------------------------------
+
+# set to VGA 8x60 and low bell pitch
+#/usr/sbin/vidcontrol VGA_80x60 # allscreens_flags="VGA_90x60"
+#/usr/sbin/kbdcontrol -b10.50   # allscreens_kbdflags="-b10.50"
+#kbdmap="us.win"
+
+alias vf=vidfont
+alias vc=vidcontrol
+alias vci='vc -i mode'
+alias vcm='vc MODE_279'
+alias vcx='vc MODE_282'
+
+VCt0c='</dev/ttyv0>/dev/ttyv0'
+evt0c(){ test "$1" && eval "$1 $VCt0c"; }
+
+alias 25='vc VGA_80x25'
+alias 30='vc VGA_80x30'
+alias 43='vc EGA_80x43'
+alias 50='vc VGA_80x50'
+alias 60='vc VGA_80x60'
+alias 90='vc VGA_90x60'
+alias 132='vc VESA_132x60'
+alias 100='vc -g 100x75 VESA_800x600'
+
+alias 25c='evt0c 25'
+alias 30c='evt0c 30'
+alias 43c='evt0c 43'
+alias 50c='evt0c 50'
+alias 60c='evt0c 60'
+alias 90c='evt0c 90'
+alias 132c='evt0c 132'
+alias 100c='evt0c 100'
+
+# viat() {
+#   local n=; test "$1" || return
+#   if test "$2"; then
+#     # NOTES: if last_arg is a valid number, then
+#    	#        it will not longer be considered as file
+#     n=`get_last_arg $*`
+#     isnums "$n" && n="-c:$n" || n=""
+#   fi
+#   $EDITOR $n "${@%$n}";	# both ["] and [@] are essentials here!
+# }
+
+# aa's notes about $@ and $*
+# when $@ is double-quoted, each positional parameters expanded as-is,
+# (ie. embeded spaces will be kept intact, zero argument is properly set)
+#
+# with $* or $@ without quotes, any embedded spaces will be lost
+#
+# with "$*" (within quotes), any number of arguments (even zero argument)
+# will yield at least 1 result. by "$@", zero argument is properly set as such
+# eg. statement: 'for f in "$*"'.. will match "*" if no argument has given
+
+#BAD! alias su="su -l"
+alias log0="login -f AA"
+alias log1="login -f KERNEL"
+
+alias vic='$EDITOR /etc/rc.conf'
+alias vicl='$EDITOR /etc/rc.conf.local'
+alias vif='$EDITOR /etc/fstab'
+alias vip='$EDITOR /etc/profile'
+# alias vipx='vip && soup'
+alias cap='cat /etc/profile'
+alias capl='cat /etc/profile | less'
+alias vib='$EDITOR /boot/loader.conf'
+alias vibl='$EDITOR /boot/loader.conf.local'
+alias vigw='$EDITOR /etc/group'
+alias vip3='$EDITOR /etc/ppp/ppp.conf'
+alias vinetd='$EDITOR /etc/inetd.conf'
+alias vinetdx='$EDITOR /etc/inetd.conf && killall -HUP inetd'
+alias viresolv='$EDITOR /etc/resolv.conf'
+alias vixrc='$EDITOR /etc/vi.exrc'
+alias vimxrc='$EDITOR /etc/vim.exrc'
+alias vicf='$EDITOR /usr/local/etc/postfix/main.cf'
+alias vimcf='$EDITOR /usr/local/etc/postfix/master.cf'
+alias caf="cat /etc/fstab"
+alias cap3='$PAGER /etc/ppp/ppp.conf'
+alias lep="less /etc/profile"
+alias led="less /etc/defaults/rc.conf"
+alias les="less /etc/services"
+alias lem="tail /var/log/messages"
+alias leml="tail /var/log/maillog"
+alias lemf="tail -F /var/log/messages"
+alias lemlf="tail -F /var/log/maillog"
+alias tailm="tail /var/log/messages"
+alias tailml="tail /var/log/maillog"
+alias tailmf="tail -F /var/log/messages"
+alias tailmlf="tail -F /var/log/maillog"
+alias tlf="tail -F /var/log/messages /var/log/mail.log"
+alias lessh="test -e help && less help || ( test -e configure && sh configure --help | less )"
+alias vico='test .CONFIG.sh && $EDITOR .CONFIG.sh'
+alias vicosh="vico && sh .CONFIG.sh"
+alias cosh="sh .CONFIG.sh"
+alias sshx="ssh -C -p 1022"
+
+alias wich=which
+vich() { [ "$1" ] && $EDITOR `which $*`; }
+catch() { [ "$1" ] && $PAGER `which $*`; }
+
+test -r /usr/sbin/sysinstall && alias sins=/usr/sbin/sysinstall
+test -r /stand/sysinstall && alias sins=/stand/sysinstall
+
+alias sind="sins ufs=/usr/FreeBSD diskLabelEditor"
+alias sinp="sins ufs=/usr/FreeBSD diskPartitionEditor"
+alias sinpkg="sins ufs=/usr/FreeBSD mediaSetUFS configPackages"
+
+firestart() {
+  rules=/etc/rules.$1
+  test -n "$1" -a -f "$rules" && shift || return 1
+  case "${rules##*.}" in
+    pf) $SUDO pfctl $* -Fn -Fr -Fq -FS -fT -f $rules;;
+    ipnat) $SUDO ipnat $* -CF -f $rules;;
+    ipf) $SUDO ipf $* -Fav -f "$rules"; $SUDO ipf -F30;;
+    ipfw) $SUDO sh $rules $*;;
+    *) return 1;;
+  esac
+}
+
+edrules(){ test -f "/etc/rules.$1" && $EDITOR /etc/rules.$1 || return 1; }
+edrulex(){ edrules $1 && firestart $*; }
+
+alias edpf="edrules pf"
+alias ednat="edrules ipnat"
+alias edipf="edrules ipf"
+alias edipfw="edrules ipfw"
+
+alias edpfx="edrulex pf"
+alias ednatx="edrulex ipnat"
+alias edipfx="edrulex ipf"
+alias edipfwx="edrulex ipfw"
+
+alias edpft="edrulex pf -n"
+alias ednatt="edrules ipnat -n"
+alias edipft="edrulex ipf -n"
+alias edipfwt="edrulex ipfw -n"
+
+alias edfpm='$EDITOR /usr/local/etc/php-fpm.conf'
+alias edfpmx="edfpm && fpmctl_restart"
+
+alias edphp='$EDITOR /usr/local/etc/php.ini'
+alias edphpx="edphp && php_restart"
+
+# alias ednx='$EDITOR /usr/local/etc/nginx/nginx.conf'
+ednx() { $EDITOR /usr/local/etc/nginx/nginx.conf${1:+.$1}; }
+alias ednxx="ednx && nxctl_restart"
+alias ednxh="ednx http"
+alias ednxs="ednx server"
+alias ednxhx="ednxh && nxctl_restart"
+alias ednxsx="ednxs && nxctl_restart"
+alias edfpm='$EDITOR /usr/local/etc/php-fpm.conf'
+
+alias test-pf="firestart pf -n"
+alias test-ipf="firestart ipf -n"
+alias test-nat="firestart ipnat -n"
+alias test-ipfw="firestart ipfw -n"
+
+alias ipfstatl="$SUDO ipfstat -nhio | sed 's/\ \@/\	/' | less"
+alias ipfstatt="$SUDO ipfstat -t"
+alias ipf30="$SUDO ipf -F30"
+
+alias pf_restart="firestart pf"
+alias ipf_restart="firestart ipf"
+alias ipnat_restart="firestart ipnat"
+
+alias restart_pf=pf_restart
+alias restart_ipf=ipf_restart
+alias restart_ipnat=ipnat_restart
+
+alias dhcpd_stop="(cd /bin; $SUDO /usr/local/etc/rc.d/isc-dhcpd* stop)"
+alias dhcpd_start="(cd /bin; $SUDO /usr/local/etc/rc.d/isc-dhcpd* start)"
+alias dhcpd_restart="(cd /bin; $SUDO /usr/local/etc/rc.d/isc-dhcpd* restart)"
+alias restart_dhcpd=dhcpd_restart
+alias rdhcpd=dhcpd_restart
+
+alias edhcpd='$EDITOR /usr/local/etc/dhcpd.conf'
+alias edhttpd='$EDITOR /usr/local/etc/apache/httpd.conf'
+alias edhttpd2='$EDITOR /usr/local/etc/apache2/httpd.conf'
+alias ednamed='$EDITOR /etc/namedb/named.conf'
+
+_revstr() {
+  str="$@"; rev=
+  while test -n "$str"; do
+    cut="${str%*?}"	# cut the last char
+    rev="$rev${str#$cut}"
+    str="$cut"
+  done
+  echo $rev
+}
+
+_revlist() { rev=; for r; { rev="$r $rev"; }; echo $rev; }
+
+_get_rc_order() {
+  test -n "$1" && LIST="" || return
+  for r; { LIST="$LIST -e $r"; }
+  grep_word="grep -w"; grep_line="grep -x";
+  rcorder /etc/rc.d/* /usr/local/etc/rc.d/* | $grep_word $LIST
+}
+
+_get_rc_order_rev() { _revlist `_get_rc_order "$@"`; }
+
+_rclist_commander() { # for scripts who have already had builtin restart command
+  test "$2" || return; # min 2 args: start/stop/reload etc, script1, script2..
+  op="$1"; case "$1" in 0) op=stop;; 1)op=start;; 3)op=restart;; esac; shift;
+  LIST=`_get_rc_order "$@"`; test "$op" = "stop" && LIST="`_revlist $LIST`";
+  ( cd /bin; for f in $LIST; { $SUDO "$f" $op; }; )
+}
+
+_rclist_commander2() { # for scripts who dont have it, emulate restart here
+  test "$2" || return; # min 2 args: start/stop/reload etc, script1, script2..
+  op="$1"; case "$1" in 0) op=stop;; 1)op=start;; 3)op=restart;; esac; shift;
+  LIST=`_get_rc_order "$@"`; test "$op" = "stop" && LIST="`_revlist $LIST`";
+  ( cd /bin;
+    case "$op" in
+      restart)
+        for f in `_revlist $LIST`; { $SUDO "$f" stop; }
+        for f in $LIST; { $SUDO "$f" start; };;
+      *) for f in $LIST; { $SUDO "$f" $op; };;
+    esac
+  )
+}
+
+alias rcd=_rclist_commander
+alias rcd2=_rclist_commander2
+alias get_rcorder=_get_rc_order
+alias get_rcorder_rev=_get_rc_order_rev
+
+# deprecated! for backward compatible only
+alias rcdl=rcd
+alias rcdl2=rcd2
+
+# deprecated!
+# rcdl() { rcd LOCAL "$@"; }
+# rcd() {
+#   local _LOCAL=
+#   test "$1" = "LOCAL" && { _LOCAL=/usr/local; shift; }
+#   cmd="$1" op="$2"
+#   test -n "$1" && shift; test -n "$1" && shift;
+#   case "$op" in 0) op=stop;; 1) op=start;; 3) op=restart;; esac
+#   test -f "$_LOCAL/etc/rc.d/$cmd" && (cd /bin; "$_LOCAL/etc/rc.d/$cmd" $op "$@"; )
+# }
+
+# deprecated!
+# alias stop_rcdl='for x in /usr/local/etc/rc.d/*; { test -f "$x" && "$x" stop; }'
+# alias start_rcdl='for x in /usr/local/etc/rc.d/*; { test -f "$x" && "$x" start; }'
+
+eval_start_stop() {
+  CMD="$1"; TOK=""; EV=""
+  expand_token() {
+    case "$1" in
+  #    php|pgsql|swdba|fpmctl|nxctl|fcgid|htctl|www|pf|ipf|ipnat|dhcpd) EV="$EV ${1}_$CMD;";;
+  #    thttpd) EV="$EV htctl_$CMD;";;
+      pgsql|swdba|pf|ipf|ipnat|dhcpd|squid) EV="$EV ${1}_$CMD;";;
+      # fpm|php[_-]fpm) EV="$EV fpmctl_$CMD;";;
+      # fcgi|fastcgi) EV="$EV fcgid_$CMD;";;
+      # my|sql|mysql|mysqlsvr) EV="$EV mysqlsvr_$CMD;";;
+      # fpm|php[_-]fpm) TOK="$TOK php-fpm";;
+      # pg|postgre) EV="$EV pgsql_$CMD";; sw) EV="$EV swdba_$CMD";;
+      # dba) EV="$EV mysqlsvr_$CMD pgsql_$CMD";;
+  #     nginx
+  #     ftpd|pureftpd|imapd|saslauthd|dovecot|milter-sid|milter-opendkim|milter-dk|\
+  #     amavisd|amavisd-milter|amavisd|amavisd-milter|amavis-p0fanalyzer|postfix|\
+  #     clamav-clamd|clamav-milter|clamfresh) rcd "$1" "$2";;
+  #
+      pg|postgre*) TOK="$TOK postgresql pgbouncer";;
+      my) TOK="$TOK mysql-server";;
+      dba)  TOK="$TOK postgresql mysql-server";;
+      www) TOK="$TOK php nginx thttpd";;
+      nx) TOK="$TOK nginx";;
+      pure) TOK="$TOK pureftpd";;
+      ftp) TOK="$TOK ftpd pureftpd";;
+      postfix) TOK="$TOK postfix";; # postfix does not have restart
+      #mail) TOK="$TOK opendkim milter-dk imapd postfix clamd clamav-milter";;
+      mail) TOK="$TOK opendkim milter-dk imapd postfix clamd spamd clamav-milter";;
+      sasl) TOK="$TOK saslauthd";;
+      dk) TOK="$TOK milter-dk";;
+      dka) TOK="$TOK milter-opendkim; milter-dk";;
+      dkim|opendkim) TOK="$TOK milter-opendkim";;
+      imap|cyrus) TOK="$TOK imapd";;
+      sid) echo "fucking-buggy  milter-sid DISABLED";;
+      dove) TOK="$TOK dovecot";;
+      clams) TOK="$TOK clamav";; # are: clamav-milter clamav-freshclam clamav-clamd";;
+      clam) TOK="$TOK clamav-clamd clamav-freshclam";;
+      clamd) TOK="$TOK clamav-clamd";;
+      clamilt|clamil|clamilter|clami|clmilt|clmilter|cmil|cmilt) TOK="$TOK clamav-milter";;
+      clamfresh|clamfr|clfresh|clfr) TOK="$TOK clamav-freshclam";;
+      amavisd) TOK="$TOK amavisd";; amavism) TOK="$TOK amavis-milter";;
+      amavisp) TOK="$TOK amavis-p0fanalyzer";; amaviss) TOK="$TOK amavisd amavis";;
+      spamd) TOK="$TOK sa-spamd";;
+      spams) TOK="$TOK sa-spamd spampd";;
+      sys|var) rndc stop; TOK="$TOK amd timed powerd cron syslogd inetd idmapd hostapd devd ntpd ipmon moused usbd ftp-proxy dhcpd mountd nfsd rpcbind statd pflog ppp";;
+      _applications) TOK="$TOK clamav amavis amavisd spamd spampd pureftpd ftpd dkim dk imapd postfix milter";;
+      *) TOK="$TOK $1";;
+    esac
+  }
+  while test -n "$1"; do
+    expand_token "$1"; shift
+  done
+  (
+    cd /bin
+    test -n "TOK" && rcd "$CMD" $TOK
+    test -n "EV" && for e in $EV; { eval "$e"; }
+  )
+}
+
+# not-used or unfinished update?? i forgot :((
+_eval_start_stop() {
+  local tok eva
+  test -n "$2" && act="$1" || return
+  shift
+  expand_rc_token() {
+    ta() { tok="$tok $@"; }
+    ea() { for e; { eva="$eva ${e}_${act}"; } }
+    for r; do
+      case "$r" in
+	pf|ipf|ipfw) test "$act" = restart && ea $r || ta $r;;
+	#
+	#amavis-milter|amavis-p0fanalyzer|amavisd|amavisd-milter
+	#clamav-clamd|clamav-freshclam|clamav-milter
+	#sa-spamd|spamass-milter|dccd|dccgrey|dccifd|dccm
+	#dkimproxy_in|dkimproxy_out|milter-dk|milter-opendkim|milter-sid
+	#dracd|fusefs|ftpd|pureftpd|rsyncd|slapd|slurpd|svnserve
+	#nginx|php-fpm|thttpd|imapd|postfix|saslauthd|mysql-server|postgresql
+	#
+	sys|var) ta timed powerd cron syslogd inetd devd pflog ipmon;;
+	ftp) ta pureftpd ftpd;; pure) ta pureftpd;;
+	pg|pgsql|postgre*) ta postgresql pgbouncer;;
+	my|mysql*) ta mysql-server;;
+	dba) ta mysql postgresql;;
+	dk) ta milter-dk;; dkim) ta milter-opendkim;;
+	post) ta postfix milter-opendkim milter-dk clamd;;
+	imap) ta imapd;; dove) ta dovecot;;
+	mail) ta mail `expand_rc_token post`;;
+	sasl) ta saslauthd;;
+	php|fpm) ta php-fpm;;
+	nx) ta nginx;; www) ta php-fpm nginx thttpd;;
+	sa|spamd) ta sa-spamd;;
+	spams) ta sa-spamd spampd;;
+	#
+	*) ta $r;;
+      esac
+    done
+  }
+  (
+    cd /bin
+    test -n "tok" && rcd "$act" $tok
+    test -n "ev" && for e in $ev; { eval "$e"; }
+  )
+}
+
+# stop() { for f in $*; { eval_start_stop stop "$f"; } }
+# start() { ( cd /bin; for f in $*; { eval_start_stop start "$f"; }; ) }
+# restart() { ( cd /bin; for f in $*; { eval_start_stop restart "$f"; }; ) }
+# reload() { ( cd /bin; for f in $*; { eval_start_stop reload "$f"; }; ) }
+
+# stop() { for r in "$@"; { eval_start_stop stop "$r"; } }
+# start() { ( cd /bin; for r in "$@"; { eval_start_stop start "$r"; } ) }
+# restart() { ( cd /bin; for r in "$@"; { eval_start_stop restart "$r"; } ) }
+# reload() { ( cd /bin; for r in "$@"; { eval_start_stop reload "$r"; } ) }
+
+alias stop="eval_start_stop stop"
+alias start="eval_start_stop start"
+alias restart="eval_start_stop restart"
+alias reload="eval_start_stop reload"
+
+alias start_all="start ftp mail www pg"
+alias stop_all="stop pg my www clams spamd amaviss ftp mail squid"
+alias stop_ALL="stop all sys"
+
+alias stop_app="stop _applications"
+alias start_app="start _applications"
+
+#rc_stop(){ rcd "$1" stop; }
+#rc_start(){ rcd "$1" start; }
+#rc_restart(){ rcd "$1" restart; }
+
+alias restrat=restart
+alias restrt=restart
+alias retart=restart
+alias retsart=restart
+alias retstart=restart
+alias rstart=restart
+alias rstrat=restart
+
+makebar() {
+  #arg1 : bar fill, char please..
+  #arg2 : string to cover
+  test "$2" || return 1
+  local b="$1"; shift
+  local n="${#@}"
+  while test "$n" -gt 0; do
+    n="$(($n-1))"; echo -n $b
+  done
+}
+
+alias strip_shit='sed -i "" "/^ \*[ 	]\+Copyright.* [12][0-9][0-9][0-9][0-9] /,/^ \*\//{/^ \*\//b;d;}"'
+
+#strip ansi escape codes:
+alias ansix="perl -pe 's/\e\[?.*?[\@-~]//g'"
+
+get_realpath() { # cheap realpath if you have only ls
+  test -e "$1" || return 1
+  local t="$1"; while test -L "$t"; do
+    # t=`stat -f %%Y "$t"`;
+    t="`ls -lF "$t"`"
+    #t="${t##*> }"
+    t="$(expr "$t" : '.*> *\(.*\)')"
+  done
+  t="`ls -i "$t"`"; echo ${t%% *}
+}
+
+get_mounted_devs() { local CR="
+" # get mounted devices list (ufs,ffs,ext2fs only)
+  # using cached $mounted_devs, unless arg -r (for referesh) is given
+  if test "$1" = "-r" -o -z "$mounted_devs" -o -n "${mounted_devs%%/*}"; then
+    local dev IFS="$CR"; mounted_devs=""
+    for dev in `mount -t ufs,ffs,ext2fs`; do
+    test "$mounted_devs" && mounted_devs="$mounted_devs$CR"
+    mounted_devs="$mounted_devs${dev%% *}"
+  done
+fi; echo $mounted_devs
+}
+
+get_mountptabs() { local TAB="	" CR="
+" # get mounted devices along with their respective mountpoint
+  # (tab-delimited as in fstab, but here always exactly by 1 TAB)
+  # using cached $mountptabs unless arg -r (for referesh) is given
+  if test "$1" = "-r" -o -z "$mountptabs" -o -n "${mountptabs%%/*}"; then
+    mountptabs=""; local dev IFS="$CR"
+    for dev in `df -t ufs,ffs,ext2fs`; do
+      test "$mountptabs" && mountptabs="$mountptabs$CR"
+      mountptabs="$mountptabs${dev%% *}$TAB${dev##* }"
+    done
+  fi
+echo "$mountptabs"
+}
+
+#as above all devices, SPACE delimited
+get_mounted_slices() { local dev IFS='
+'; for dev in `df`; {
+    test -n "$dev" -a -z "${dev%%/*}" && \
+      echo "${dev%% *}" "${dev##* }"
+  }
+}
+
+get_mountpoints() {
+# returns mountpoints: /var /tmp /usr etc..
+# arg: -d (dos) or -a (all), anything else means ufs/extfs
+  fs="ufs,ffs,ext2fs,ext3fs,reiserfs"; dos="msdos,msdosfs,ntfs"
+  case "$1" in -d|-dos|dos) fs="$dos";; -a|-all|all) fs="$fs,$dos";; esac
+  local L result="" IFS="
+"; for L in `df -t $fs 2>/dev/null`
+   { test -z "${L##/*}" && result="$result ${L##* }"; }
+  # echo "${result# /}" # ..EXCEPT root (/)
+  echo $result          # ..INCLUDING root (/)
+}
+
+get_mountpoint() { local CR="
+" # get mountpoint of a given device
+  # always using cached $mountptabs
+  # you have to make sure it has a valid/actual ones
+  test "$1" || return
+  local ptab IFS="$CR"
+  for ptab in `get_mountptabs`; do
+    [ "$1" = "${ptab%%	*}" ] && \
+      { echo "${ptab##*	}"; return; }
+  done
+}
+
+arg1_is_member_of_restofargs() {
+  test -z "$1" && return 0
+  test -z "$2" && return 1
+  local arg1="$1"; shift
+
+  #IFS can not be a reserved chars (asterisk,brace)
+  #local args="$IFS$@$IFS"
+  #test -z "${args##*$IFS$arg1$IFS*}"
+
+  local IFS=""
+  local args="$@"
+  test -z "${args##*$arg1*}"
+
+  #while test "$1"; do test "$arg1" = "$1" && return 0; shift; done
+  #return 1
+}
+
+linkall () {
+test -z "$1" -o "$1" = -h && { cat <<:
+  # usage: ${FUNCNAME:=linkall} files...
+  # make link (hardlink, forced) of all identical files
+  # based on their md5's checksum)
+  # the first file found will be taken as source link
+  # caution:
+  #   already existing hardlink to outside (uncovered,
+  #   not given as file arguments) will be broken
+:
+return 1; }
+  # test -d "$1" && { cd -P "$1" || return; }
+  local fn= lx= ln= S="|"
+  for f in $*; do
+    test -f "$f" || continue
+    eval `stat -s $f`
+    if test -n "${S##*|$st_size|*}"; then
+      S="$S$st_size|"
+      eval "ln_$st_size=\|" "lx_$st_size=\|"
+    fi
+    eval ln="\$ln_$st_size";	# get inode list
+    test -z "${ln##*|$st_ino|*}" && continue
+    #
+    eval lx="\$lx_$st_size";	# get md5 list
+    x="`md5 -q "$f"`"
+    if test -n "${lx##*|$x=*|*}"; then
+      lx="$lx$x=$f|" ln="$ln$st_ino|"
+      eval "lx_$st_size=\$lx" "ln_$st_size=\$ln"
+    else
+      fn="${lx##*|$x=}"; fn="${fn%%|*}";
+      ln -fv "$fn" "$f"
+    fi
+  done
+}
+
+linkall_to1 () {
+  # link all identical files (in current directory, based
+  # on inode number and md5 checksum) to a specified file
+  #
+  local i j x y
+  test -f "$1" || return
+  i="`stat -nf%i "$1"`"
+  x="`md5 -q "$1"`"
+  for f in *; do
+    test "$f" != "$1" || continue
+    j="`stat -nf%i "$f"`"
+    test "$i" != "$j" || continue
+    y="`md5 -q "$f"`"
+    test "$x" = "$y" && ln -fv "$1" "$f"
+  done
+}
+
+# link_all_indir_OK () {
+#   # link all identical files (in a specified directory, based
+#   # on md5 checksum). this function is equal to execute:
+#   #   for f in *;
+#   #     do linkall_to1 "$f";
+#   #   done
+#   # only much faster (also with customizable target directory)
+#   #
+#   local fn x xs="|" n ns="|"
+#   test -d "$1" && { cd -P "$1" || return; }
+#   for f in *; do
+#     test -f "$f" || continue
+#     x="`md5 -q "$f"`"
+#     if test -n "${xs##*|$x=*|*}"; then
+#       xs="$xs$x=$f|"
+#     else
+#       fn="${xs##*|$x=}"; fn="${fn%%|*}";
+#       ln -fv "$fn" "$f"
+#     fi
+#   done
+#   # echo "$xs"
+# }
+#
+# linkall_dir_OK() {
+#     local fn= lx= ln= S="|";
+#     test -d "$1" && {
+#         cd -P "$1" || return
+#     };
+#     for f in *;
+#     do
+#         test -f "$f" || continue;
+#         eval `stat -s $f`;
+#         if test -n "${S##*|$st_size|*}"; then
+#             S="$S$st_size|";
+#             eval "ln_$st_size=\|" "lx_$st_size=\|";
+#         fi;
+#         eval ln="\$ln_$st_size";
+#         test -z "${ln##*|$st_ino|*}" && continue;
+#         eval lx="\$lx_$st_size";
+#         x="`md5 -q "$f"`";
+#         if test -n "${lx##*|$x=*|*}"; then
+#             ln="$ln$x=$f|";
+#             eval "lx_$st_size=\$ln";
+#         else
+#             fn="${lx##*|$x=}";
+#             fn="${fn%%|*}";
+#             ln -fv "$fn" "$f";
+#         fi;
+#     done
+# }
+
+
+is_equ_inode() {
+  # test "$2" || return
+  test -e "$2" || return
+  test "$1" != "$2" || return
+  i1="`stat -nf%i "$1"`"
+  i2="`stat -nf%i "$2"`"
+  test "$i1" = "$i2"
+}
+
+is_already_mounted() {
+  test "$1" || return 0
+  arg1_is_member_of_restofargs "$1" ${mounted_devices:=`get_mounted_devices`}
+}
+
+get_nlink() {
+  if ! test -f "$1"; then echo 0
+  else local n="`ls -lid $f`"
+    n="`echo ${n#* * }`"; #get field-3, strip space prefix
+    echo ${n%% *}
+  fi
+}
+
+get_root() { # no need /usr/bin/stat
+  # get mount-point of given path # passing var: mountpoints,
+  # which better be supplied to avoid resolving in every calls
+  test -e "$1" || return 1
+  local d="`realpath "$1"`" 2>/dev/null
+  test -d "$d" || d="${d%/*}";	#strip filename portion
+  d="${d%/}";	#strip trailing slash
+  test "${DEBUG}" && echo "d=$d"
+  local err="" result="/"
+  #wrongway: test -z "${d%/*}" && { echo "$d"; return; }
+  if test -n "$d"; then
+    mountpoints=`get_mountpoints -a`
+    for r in ${mountpoints#*/}; do
+      test "$r" = "$d" && { echo "$d"; return; }
+    done
+    for r in ${mountpoints#*/}; do
+      # / (root) must NOT get the way in here!
+      test "${DEBUG}" && echo "r=$r"
+      # test "$r" = "$d" && { result="$r"; break; }
+      r=$r/; test -z "${d%$r*}" && result="${r%/}"
+    done
+  fi
+  echo "${result}"
+}
+
+get_root_OK() { # need stat to be correct
+  # get mount-point of given path # passing var: mountpoints,
+  # which better be supplied to avoid resolving in every calls
+  d="`realpath "$1"`"
+  if test "$d" = "/"; then echo "/"; return
+  else d=`stat -Lf%d "$d"` || return
+    #for r in ${mountpoints:=`get_mountpoints -a`}; do
+    for r in `get_mountpoints -a`; do
+      test "$DEBUG" && echo "r=$r"
+      test "$d" = "`stat -f%d "$r"`" && { echo "$r"; return; }
+    done
+  fi
+}
+
+find_hardlinks() {
+  test "$1" || { cat <<:
+
+  # usage: ${FUNCNAME:=find_hardlinks} [ -q ] file...
+  # option -q (quiet) will suppress heading, only files will
+  # be shown, useful as a clean input for another command
+
+:
+return 1; }
+  local m f i n q=""
+  if test "$1" = "-s" -o "$1" = "-q"; then shift; q=1
+  #mountpoints_ufs="${mountpoints_ufs:-`get_mountpoints`}"
+  mountpoints_ufs=`get_mountpoints`
+  #else echo; echo Please wait, this might take quite a time...
+  #echo mount-points: $mpts
+  fi
+  for f in $*; do
+    test -f "$f" || continue
+    #i="`stat %i $f`"; n="`stat %l $f`"
+    n="`ls -lid $f`"
+    i="${n%% *}"
+    n="`echo ${n#* * }`"	#to strip space prefix
+    n="${n%% *}"
+    m=`get_root "$f"`
+    echo; test "$q" || {
+      echo file: $f, inode: $i, count: $n, mountpoint: $m
+      echo "member(s):"
+    }
+    local spc=""
+    test "$q" || spc="  "
+    f="`realpath $f`"; echo "$spc""$f"
+    test "$n" -eq "1" && continue
+    find -dx "$m" -inum "$i" ! -regex "$f" -exec echo "$spc"{} \;
+  done
+}
+
+#alias cpxl=concat_hardlinks
+concat_hardlinks() {
+  local L=""; test "$1" = "-l" && { shift; L=1; }
+  test -f "$1" -a -f "$2" ||  { cat << :
+
+  # usage: ${FUNCNAME:=concat_hardlinks} [ -l ] source target
+  # replace target hardlinks with source, make all identical.
+  # (resulting 1 identical copy if all on the same mountpoint)
+  # does not operate if either target or source is a symbolic link
+  # unless option -l is given, then all symlinks will be resolved first
+
+  # WARNING:
+  #   if some of target hardlinks somewhat hidden or not
+  #   accessible (such as burried under overlapping mounts,
+  #   then (consequently) they can not be proceed and
+  #   truncated/separated. to overcome this, simply uncover
+  #   the mountpoint and repeat/continue concating hardlinks.
+
+  # see also: concat_hardlinks_r
+
+:
+return 1; }
+  test "$L" || { test -L "$1" -o -L "$2" && return 1; }
+  set -- "`realpath "$1"`" "`realpath "$2"`"
+  test "$1" = "$2" && return 1
+  #mountpoints_ufs="${mountpoints_ufs:-`get_mountpoints`}"
+  mountpoints_ufs=`get_mountpoints`
+  if test "`get_root "$1"`" = "`get_root "$2"`"; then
+    local f dest="`find_hardlinks -q "$2"`"
+    ln -f "$1" "$2" && for f in $dest; do
+      test "$2" = "$f" || ln -f "$2" "$f"
+    done
+  else cp -p "$1" "$2"; fi
+}
+
+is_eqroot() {
+  local err=0
+  if test $# -le 1; then err=1
+  elif test ! -e "$1" -o ! -e "$2"; then err=2
+  elif ! set -- "`realpath "$1"`" "`realpath "$2"`"; then err=3
+  #elif ! mountpoints="${mountpoints:-`get_mountpoints -a`}"; then err=4
+  elif ! mountpoints=`get_mountpoints -a`; then err=4
+  elif test "`get_root "$1"`" != "`get_root "$2"`"; then err=5; fi
+  echo "$err"; return $err
+}
+
+echolm() { echo -n "$lm"; test "$1" && echo "$@"; }
+
+cpHardLink_fromFILE() { # source should be a file
+  local V="-v"
+  echolm "hardlink/copy file: $1 to: $2"
+  # expect at least 2 arg of source and target (not counting
+  # for option -l or -h and valid equalroot_flag value: +0..+9)
+  # +0 means EQUAL root, +1..+9: either not equal or error
+  # if equalroot_flag is ALREADY set, then it will NOT be touched
+  # if target has not been existed yet, then it will be created
+  # any excess arguments $4... will be simply ignored
+  #read c
+
+  # shift any valid arguments given
+  local L="$1"; if test "$L" = "-l" -o "$L" = "-h"; then shift
+  else test "$L" || return 1; L=""; fi
+
+  # quit if either arg3 is empty or not an eqR_flag, or arg1 = arg2
+  # revised: arg3 now may be empty (and eqR_flag could be preset)
+  test -n "$2" -a "$1" != "$2" || return 1
+
+  # symlink will be ignored unless explicitly tell so
+  test -L "$1" -a "$L" != "-l" && return 0
+
+  # if source is a symlink or target does not yet exists,
+  # then do a plain copy
+  test -L "$1" -o ! -e "$2" && {
+    echolm; ln $V -fh "$1" "$2" || { echolm; cp $V -Rp "$1" "$2"; }
+    return 0
+  }
+  # afterwise- always process physical copy (not of symlink)
+
+  #echolm "prepare physically copy \$1:$1 to \$2:$2 \$3:$3 eqRflag:$eqR_flag"
+
+  # if eqR_flag not already set then local eqR_flag will be built
+  test -n "$3" -a -z "${3#+[0-3]}" && local eqR_flag="${eqR_flag:-$3}"
+
+  #mountpoints="${mountpoints:-`get_mountpoints`}"; #needed by is_eqroot
+  mountpoints=`get_mountpoints`; #needed by is_eqroot
+  test -z "$eqR_flag" && local eqR_flag="+""`is_eqroot "$1" "$2"`"
+
+  # if not in the same physical device, then do a simple copy
+  test "$eqR_flag" != "+0" && { echolm; cp $V -fp "$1" "$2"; return 0; }
+
+  local f="$2"; echolm "hardlinking \$1:$1 to \$2:$2"
+  test -d $2 && f="$f/`f_basename "$1"`"
+
+  local n=0; test -f "$f" && {
+    n="`ls -lid $f`"; n="`echo ${n#* * }`"; n="${n%% *}"
+  }
+
+  test "$n" -le 1 && { echolm; ln $V -f "$1" "$2"; return 0; }
+
+  local m="`ls -i "$1"`"; n="`ls -i "$f"`"
+  test "${m%% *}" = "${n%% *}" && { echolm "skipping identical: $1 = $f"; return 0; }
+
+  local dest="`find_hardlinks -q "$f"`"
+  echolm "getting \$1:$1 to \$2:$2 \(\$f=$f\), got \$dest:$dest"
+
+  ln -f "$1" "$2" && {
+    #local dest="`find_hardlinks -q "$f"`"
+    for f in $dest; do
+      #echolm "linking \$1:$1 ~ \$f:$f"
+      test "$1" = "$f" || { echolm; ln $V -f "$1" "$f"; }
+    done
+  }
+  echo
+}
+
+cpHardLink_toDIR() { # destination should be a dir
+  # if file-ref had been given, then the parent directory portion
+  # (where the target resides) which would be taken
+  #echolm "target-dir: $2, source: $1, "
+  echolm "\$1:$1 \$2:$2 \$3:$3 \$4:$4 \$5:$5 flag:$eqR_flag"
+
+  # shift any valid arguments given
+  #read c
+  local L="$1"; if test "$L" = "-l" -o "$L" = "-h"; then shift
+  else test "$L" || { echolm "-no source"; return 1; }; L=""; fi
+  test -e "$1" -a -e "$2" || { echolm "-invalid source/dest"; return 1; }
+  test -L "$1" -a -z "$L" && { echolm "-symlink skipped"; return 0; }
+
+  # validate arguments
+  set -- "${1%/}" "${2%/}"
+
+  # test -d "$2" || return 1 # target must be dir? no.
+  # make target to be always a dir instead
+  local t="$2"; test -L "$2" -o -f "$2" && t="${2%/*}"
+  while test -n "$t" -a -z "${t##*/}"; do t=${t%/}; done
+
+  #mountpoints_ufs="${mountpoints_ufs:-`get_mountpoints`}"
+  mountpoints_ufs=`get_mountpoints`
+
+  if test -d "$1" -a ! -L "$1"; then
+    echolm "$1 is a DIR..."
+    local eqR_flag="${eqR_flag:-"+""`is_eqroot "$1" "$2"`"}"
+    #read -p"$lm""paused2, \$1:$1 \$2:$2 flag:$eqR_flag" c
+    local d="$2"/"`f_basename "$1"`"
+    #read -p"$lm""paused2a, \$1:$1 \$2:$2 s:$s d:$d flag:$eqR_flag" c
+    test -e "$d" || { echolm "making dir: $d"; echolm; mkdir -v "$d" || continue; }
+    local s; for s in `ls -A $1`; do s="$1/$s"; echolm "enter: $s"
+      test -f "$s" -o -d "$s" || { echolm "skip unknown $s"; continue; }
+      #read -p "$lm""paused2b, \$1:$1 \$2:$2 s:$s d:$d flag:$eqR_flag" c
+      lm="$lm  " ${FUNCNAME:=cpHardLink_toDIR} "$s" "$d"
+    done
+  else echolm "source file: $1, target: $2, L:$L, flag:$eqR_flag"
+    cpHardLink_fromFILE $L "$1" "$2" $eqR_flag
+  fi
+}
+
+#alias cpxr=concat_hardlinks_r
+concat_hardlinks_r() {
+  # shift any valid arguments given
+  local L="$1"; if test "$L" = "-l" -o "$L" = "-h"; then shift
+  else test "$L" || return 1; L=""; fi
+
+  test "$#" -ge 2 || { cat << :
+
+  # usage: ${FUNCNAME:=concat_hardlinks_r} [ -l|-h ] source... target
+  # replace target hardlinks with sources, make all identical.
+  # multiple source files will be hardlinked to file target and its
+  # original hardlinks (resulting 1 identical copy if all reside
+  # on the same mountpoint)
+  #
+  # sources could be dirs (they will be recursively proceed), but
+  # the target then must also be a dir (this function will not
+  # attempt to hardlinking ALL source dirs recursively to 1 file,
+  #
+  # if source is a symbolic link, it will be skipped, unless option
+  #  -l is given (means simple copy symlink to target), or option
+  #  -h is given (all source symlinks will be resolved first).
+  # never (really) test the -l -h options, you've been warned.
+
+  # WARNING:
+  #   if some of target hardlinks somewhat hidden or not
+  #   accessible (such as burried under overlapping mounts,
+  #   then (consequently) they can not be proceed and
+  #   truncated/separated. to overcome this, simply uncover
+  #   the mountpoint and repeat/continue concating hardlinks.
+
+  # see also: concat_hardlinks
+
+:
+return 1; }
+  # i don't know how to easily get the last parameter in sh without
+  # using expensive getopts, while this is simply $_ in bash
+  # $# is argument number, but refering to it is illegal (bad subst)
+  #
+  # some thought (workaround):
+  #   OLDIFS="$IFS"		#save IFS
+  #   IFS=<Ctrl-A>		#to avoid conflict
+  #   last_arg="${*##*"$IFS"}"	#IFS MUST be quoted here
+  #   IFS="$OLDIFS"		#restore back
+  #
+  # otherwise we fall into function instead
+  #  last_arg() { test "$#" -gt 1 && shift "$(($#-1))"; echo "$1"; }
+  #
+
+  local S T; for T in "$@"; do :; done # echo last: $T
+  #mountpoints_ufs="${mountpoints_ufs:-`get_mountpoints`}"
+  mountpoints_ufs=`get_mountpoints`
+  for S in $@; do test -e "$S" -a "$S" != "$T" && {
+    local lm="" eqR_flag=""; #${eqR_flag:-"+""`is_eqroot "$S" "$T"`"}"
+    local STATUS="source:$S, target:$T, flag:$eqR_flag"
+    echolm "START.. $STATUS"
+    if test -d "$T"; then echolm " :TODIR.. $T"
+      cpHardLink_toDIR $L "$S" "$T"
+    elif test -f "$S"; then echolm " :FROMFILE..$S"
+      cpHardLink_fromFILE $L "$S" "$T"
+    else echolm " :SKIPPED..trying to copy dir to file"
+    fi
+  }
+  done
+}
+
+alias fh=find_hardlinks
+alias lnx=concat_hardlinks
+alias lnx="concat_hardlinks_r -l"
+#alias cdr="cd `get_root .`"
+alias ufl="flash -off"
+alias fla="flash -on"
+alias fl="chflags_h schg"
+alias uf="chflags_h noschg"
+alias zapp="truncate -s -4G"
+alias zapp="truncate -s -4294967296" #FreeBSD 9 bug does not recognizes -4G
+alias zappw="zapp /var/log/www/*.log /var/log/httpd-* /var/log/php-*.log /var/log/nginx-*.log"
+alias zappwd="zappw /var/log/debug.log"
+
+lnslib() {
+  for f in $*; {
+    test -z "${f##*.so.*}" || continue
+  }
+}
+
+# base64 encode/decode
+encode_base64() {
+  e=en; OPTS=-
+  case "$1" in -e) shift;; -d) e=de; OPTS=-r; shift;; esac
+  # B64_ENCODE="b64${e}code"
+  B64_ENCODE="uu${e}code -m"
+  for s in "$@"; do
+    x="`echo -en "${s}" | $B64_ENCODE $OPTS`"
+    test "$e" = "en" && x="`echo "$x" | sed -n 2p`"
+    test -z "$VERBOSE" && echo "$x" || \
+      echo "[${s}] ${e}coded to: ${x}";
+  done
+}
+
+encode_base64_need_perl_operating_system() {
+  e=en; case "$1" in -e) shift;; -d) e=de; shift;; esac
+  for s in "$@"; do
+    C="print \"[${s}] ${e}coded to: \" . ${e}code_base64(\"${s}\");"
+    perl -MMIME::Base64 -e "$C"
+    test "$e" = "de" && echo
+  done
+}
+
+alias encode64="encode_base64"
+alias decode64="encode_base64 -d"
+
+imap_login() {
+test -n "$2" || {
+  echo '
+    make user-password base64 encoded to test imapd
+    usage: imap_login user password
+  '; return;
+  }
+  # perl -MMIME::Base64 -e 'print encode_base64("\0user\0password");'
+  encode_base64 "\\0$1\\0$2"
+}
+
+alias vip7='7za a -l "`getbakname /tmp/vip.7z`" /etc/profile'
+alias vchp='vc -HP > "`getbakname /tmp/vchp.log`"'
+
+alias tocha="touch -h -t200909191909.19"
+alias tochb="touch -h -t196909191909.19"
+alias toche="touch -h -t200807071723.41"
+
+#kill -TERM sendmail 2>/dev/null
+DONE_INIT=1
+
