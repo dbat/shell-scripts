@@ -67,7 +67,7 @@ if exist "%PathtoVS%\link.exe" (
 @echo.	You have to remove or skip the offending files first.
 @echo.
 @echo.	When given switch /a or /s, all arguments fed directly
-@echo.	to LINK.EXE, directory auto-detection can't be proceed.
+@echo.	to LINK.EXE, directory auto-detection can't be processed.
 @echo.
 @echo.	If UNIQ.EXE is not available, there might be multiple
 @echo.	entries in the summary.
@@ -122,10 +122,10 @@ shift
 @if "%~1%"=="/a" set procAll=1 & goto proceed
 @if "%~1%"=="/s" set SumOnly=1 & goto proceed
 
-set OLDPATH=%PATH%
+set "OLDPATH=%PATH%"
 
 :LOOP
-set PATH=%OLDPATH%
+set "PATH=%OLDPATH%"
 
 @set A1=%~1
 @if not defined A1 goto done
@@ -135,10 +135,10 @@ set A1=%1
 set SHORT=%~s1
 set c=%SHORT:~-1%
 
-set PDIR=
+set "PDIR="
 if not "%c%"=="." if exist %~s1\nul (
 	set PDIR=%~1
-	set PATH=%PATH%;%1
+	set "PATH=%PATH%;%1"
 	set A1=%1\*
 )
 
