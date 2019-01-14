@@ -1,11 +1,17 @@
 @echo OFF
 setLocal enableExtensions enableDelayedExpansion
 ::rem SET THIS TO CUSTOMIZE TARGET
-set "SOURCELIST=0 1 2 3"
-set "SOURCES0=*.?asm *.as? *.a *.inc *.lst *.mac *.c *.h dis-*"
-set "SOURCES1=*.pas *.dfm *.res *.dpr *.dof *inc"
-set "SOURCES2=*.bat *.cmd *.ps *.js *.ws *.vbs"
-set "SOURCES3=*.exe *.dll *.sys *.bin *.com"
+set "SOURCELIST=0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15... a 1a"
+set "SOURCES0=*.?asm *.as? *.a *.inc *.mac *.lst *.cod *.c *.h *.mak Makefile dis-*"
+set "SOURCES0="
+set "SOURCES1=*.?asm *.as? *.a *.mac *.inc Makefile"
+set "SOURCES2=*.c *.h *.def *.rc *.mak Makefile"
+set "SOURCES3=*.pas *.dfm *.res *.dpr *.dof *inc"
+set "SOURCES4=*.bat *.cmd *.ps *.js *.ws *.vbs"
+set "SOURCES5=*.exe *.dll *.sys *.bin *.com"
+set "SOURCES6=*.txt *.not *.inf *.cfg *.asc"
+set "SOURCESa=*.obj *.lst *.cod"
+set "SOURCES1a=%SOURCES1% %SOURCESa%"
 set "SOURCES=%SOURCES0%"
 set "this=%~dpnx0"
 set "name=%~n0"
@@ -14,27 +20,30 @@ goto START
 :Help
 echo.
 echo. Batch script to backup sources
-echo. Version: 2008.01.02
+echo. Version: 2009.01.07
 echo.
 echo. Synopsys:
-echo.   Check whether if source-set has changed. If there's
-echo.   any file changed or new file added, then ALL files
-echo.   in the source-set will be backed up.
+echo.     Check whether if source-set has changed. If there's
+echo.     any file changed or new file added, then ALL files
+echo.     in the source-set will be backed up.
 echo.
-echo.   Useful for maintaining working state of project, to
-echo.   avoid mixing-up good and forgotten bad/buggy files.
+echo.     Useful for maintaining working state of project, to
+echo.     avoid mixing-up good and forgotten bad/buggy files.
 echo.
 echo. Usage:
-echo. 	%name% [ -go ] [ source-id ]
+echo.     %name% [ -go ] [ -SOURCE_INDEX... ] [ more-wildcards... ]
 echo.
-echo.   Where source-id is: (DEFAULT = 0)
+echo.     Where SOURCE_INDEX is one of:
 echo.
-for %%i in (%SOURCELIST%) do ^
-echo.     %%i : !SOURCES%%~i!
+for %%i in (%SOURCELIST%) do if defined SOURCES%%~i ^
+echo.         -%%i : !SOURCES%%~i!
 echo.
-echo.    ... you can expand further by adding them in the script
+echo.     more-wildcards:
+echo.         Additional files to be included in source-set
 echo.
-echo.   NOTE: without -go argument, show only, no real execution
+echo.     Arguments will be accumulated to curent source-set
+echo.
+echo.   NOTE: Without "-go" switch, display only, no real execution
 echo.
 pause
 exit /b
@@ -105,23 +114,36 @@ exit /b
 
 
 :fileCompare filename
-  call %cmb% "%~nx1" "%backupdir%\%pre%\%~nx1"
+  call %cmb% %cmbop% "%~nx1" "%backupdir%\%pre%\%~nx1"
   if not errorlevel 0 echo. "%%~nxf different" & set /a "updated=%updated%+1"
 exit /b
 
 :START
 
 for %%a in ("" - /) do if /i "%~1"=="%%~a?" goto Help
-for %%a in (- /) do if /i "%~1"=="%%ah" goto Help
+for %%a in (- /) do if /i "%~1"=="%%~ah" goto Help
 
 set "echo=@echo"
 set "echoswitch=off"
 set "gtrnul=^>nul"
 if /i "%~1"=="-go" shift & set "echo=" & set "echoswitch=off" & set "gtrnul=>nul"
+
+:LoopSRC
 set "arg=%~1"
 if not defined arg goto source_done
-for %%i in (%SOURCELIST%) do if "%arg%"=="%%i" set "SOURCES=!SOURCES%%i!"
+if "%~1"=="/?" ( goto Help ) else if "%~1"=="/h" goto Help
+for %%i in (%SOURCELIST%) do if "%arg%"=="-%%i" ( shift & set "SOURCES=!SOURCES! !SOURCES%%i!" & goto LoopSRC)
+
+:LoopADD
+set "arg=%~1"
+if "%~1"=="/?" ( goto Help ) else if "%~1"=="/h" goto Help
+if not defined arg goto source_done
+set "SOURCES=%SOURCES% %~1"
+shift
+goto Loopadd
+
 :source_done
+if "%SOURCES%"=="" goto Help
 echo. SOURCES = %SOURCES%
 
 @echo %echoswitch%
@@ -144,22 +166,35 @@ if not exist "%backupdir%\%got%\" goto error10000
 @rem echo ON
 
 set "cmb="
+set "cmbop="
 set "updated=0"
 for %%f in (cmb.exe) do set "cmb=%%~$PATH:f"
-if "%cmb%"=="" goto update
-
+if defined cmb goto chkUpdate
+if not defined cmb goto update
+set "cmb=fc.exe" revert to windows - not reliable
+set "cmbop=/lb1"
 goto chkUpdate
 
 :chkUpdate
 ::rem for %%f in (*.pas *.dfm *.dpr) do ()
 ::for %%f in (%~dpnx0 %SOURCES%) do (
 ::for %%f in ("%this%" %SOURCES%) do (
-for %%f in (%SOURCES%) do (
-  call %cmb% "%%~f" "%backupdir%\%pre%\%%~nxf"
+::@echo ON
+@for %%f in (%SOURCES%) do if exist "%%~f" (
+  %cmb% %cmbop% "%%~f" "%backupdir%\%pre%\%%~nxf"
+  @REM echo err:%errorlevel%
   if not errorlevel 0 echo. %%~nxf changed & set /a "updated=!updated!+1"
 )
+@echo OFF
 rem echo updated=%updated%
-if "%updated%" gtr "0" echo. %updated% file(s) has been changed. &pause& goto update
+if "%updated%" gtr "0" (
+  echo. %updated% file^(s^) has been changed.
+  if not defined echo (
+    echo.&echo.ALL files in SOURCE-SET will be backed-up to "%backupdir%\%got%\"
+	<nul set/p=Press [CTRL-C] to abort. &pause
+  )
+  goto update
+)
 
 echo. Last backup directory: "%backupdir%\%pre%"
 echo. No file has been changed. Backup is not needed.
@@ -180,7 +215,6 @@ for %%f in (%SOURCES%) do (
 )
 :update_done
 if defined echo echo.
-if defined echo echo.This is a test/show mode only
-if defined echo echo.Pass argument -go to do real execution
+if defined echo echo.This is mode: TEST/SHOW ONLY. Pass argument: "-go" to apply changes.
 if defined echo echo.
-pause
+if defined echo pause
